@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ζωολογικός Κήπος</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        // Λειτουργία για φόρτωση δεδομένων μέσω AJAX
+        function loadSection(section) {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", `index.php?section=${section}`, true);
+            xhr.onload = function () {
+                if (this.status === 200) {
+                    document.getElementById("content").innerHTML = this.responseText;
+                }
+            };
+            xhr.send();
+        }
+
+        // Φόρτωση της αρχικής ενότητας (π.χ., ζώα)
+        document.addEventListener("DOMContentLoaded", function () {
+            loadSection('animals');
+        });
+    </script>
+</head>
+<body>
+    <nav>
+        <a href="#" onclick="loadSection('animals')">Ζώα</a>
+        <a href="#" onclick="loadSection('eidos')">Είδη</a>
+        <a href="#" onclick="loadSection('events')">Εκδηλώσεις</a>
+        <a href="#" onclick="loadSection('tickets')">Εισιτήρια</a>
+    </nav>
+    <section id="content">
+        <!-- Τα δεδομένα θα φορτώνονται δυναμικά εδώ -->
+    </section>
+</body>
+</html>
