@@ -1,66 +1,71 @@
+/* Γενικό Στυλ */
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Arial', sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f9f9f9;
+    background: linear-gradient(to right, #eef2f3, #d9e2ec);
     color: #333;
 }
 
+/* Navbar */
 nav {
-    background-color: #333;
-    color: white;
-    padding: 10px;
-    text-align: center;
+    background-color: #3f51b5;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
 }
 
 nav a {
-    color: white;
-    margin: 0 15px;
+    color: #fff;
     text-decoration: none;
-    font-size: 18px;
+    padding: 10px 20px;
+    font-size: 16px;
+    transition: all 0.3s ease;
 }
 
 nav a:hover {
-    text-decoration: underline;
+    background-color: #2c387e;
 }
 
-section {
-    padding: 20px;
-    margin: 20px auto;
-    max-width: 1200px;
-    background: white;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+nav a.active {
+    background-color: #2c387e;
+    color: #ffffff;
+    font-weight: bold;
+    border-bottom: 2px solid #ff9800;
+    transform: scale(1.1);
 }
 
-#addAnimalFormContainer {
-    display: none;
+/* Section Περιεχομένου */
+section#content {
     padding: 20px;
     margin: 20px auto;
-    max-width: 800px;
-    background: #fff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    max-width: 900px;
+}
+
+/* Form Προσθήκης */
+form {
+    display: flex;
+    flex-direction: column;
 }
 
 form input, form button {
-    display: block;
-    width: 100%;
+    padding: 12px;
     margin: 10px 0;
-    padding: 10px;
     font-size: 16px;
 }
 
-table {
-    border-collapse: collapse;
-    width: 100%;
-    margin-top: 20px;
+form button {
+    background-color: #3f51b5;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
-th, td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
-}
-
-th {
-    background-color: #f4f4f4;
+form button:hover {
+    background-color: #2c387e;
 }
