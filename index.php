@@ -24,45 +24,14 @@ $result_tickets = $conn->query($sql_tickets);
 ?>
 <!DOCTYPE html>
 <html lang="el">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ζωολογικός Κήπος</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-        nav {
-            background-color: #333;
-            color: white;
-            padding: 10px;
-            text-align: center;
-        }
-        nav a {
-            color: white;
-            margin: 0 15px;
-            text-decoration: none;
-        }
-        section {
-            padding: 20px;
-        }
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin: 20px 0;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f4f4f4;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="styles.css" />
 </head>
+
 <body>
     <nav>
         <a href="#animals">Ζώα</a>
@@ -80,7 +49,7 @@ $result_tickets = $conn->query($sql_tickets);
                 <th>Έτος Γέννησης</th>
                 <th>Κατηγορία</th>
             </tr>
-            <?php while($row = $result_animals->fetch_assoc()): ?>
+            <?php while ($row = $result_animals->fetch_assoc()): ?>
                 <tr>
                     <td><?= $row['Kodikos']; ?></td>
                     <td><?= $row['Onoma']; ?></td>
@@ -99,7 +68,7 @@ $result_tickets = $conn->query($sql_tickets);
                 <th>Κατηγορία</th>
                 <th>Περιγραφή</th>
             </tr>
-            <?php while($row = $result_eidos->fetch_assoc()): ?>
+            <?php while ($row = $result_eidos->fetch_assoc()): ?>
                 <tr>
                     <td><?= $row['Onoma']; ?></td>
                     <td><?= $row['Katigoria']; ?></td>
@@ -118,7 +87,7 @@ $result_tickets = $conn->query($sql_tickets);
                 <th>Ώρα</th>
                 <th>Χώρος</th>
             </tr>
-            <?php while($row = $result_events->fetch_assoc()): ?>
+            <?php while ($row = $result_events->fetch_assoc()): ?>
                 <tr>
                     <td><?= $row['Titlos']; ?></td>
                     <td><?= $row['Hmerominia']; ?></td>
@@ -139,7 +108,7 @@ $result_tickets = $conn->query($sql_tickets);
                 <th>Όνομα Επισκέπτη</th>
                 <th>Επώνυμο Επισκέπτη</th>
             </tr>
-            <?php while($row = $result_tickets->fetch_assoc()): ?>
+            <?php while ($row = $result_tickets->fetch_assoc()): ?>
                 <tr>
                     <td><?= $row['Kodikos']; ?></td>
                     <td><?= $row['Hmerominia_Ekdoshs']; ?></td>
@@ -151,4 +120,5 @@ $result_tickets = $conn->query($sql_tickets);
         </table>
     </section>
 </body>
+
 </html>
