@@ -5,34 +5,63 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ζωολογικός Κήπος</title>
     <link rel="stylesheet" href="style.css">
-    <script src="script.js" defer></script>
 </head>
 <body>
+    <header>
+        <h1>Ζωολογικός Κήπος</h1>
+    </header>
+
     <nav>
-        <a href="#" onclick="loadSection('Ζώα')">Ζώα</a>
-        <a href="#" onclick="loadSection('Είδη')">Είδη</a>
-        <a href="#" onclick="loadSection('Εκδηλώσεις')">Εκδηλώσεις</a>
-        <a href="#" onclick="loadSection('Εισιτήρια')">Εισιτήρια</a>
-        <a href="#" onclick="loadSection('Ταμίες')">Ταμίες</a>
-        <a href="#" onclick="loadSection('Επισκέπτες')">Επισκέπτες</a>
-        <a href="#" onclick="loadSection('Φροντιστές')">Φροντιστές</a>
-        <a href="#" onclick="loadSection('Προμηθευτές')">Προμηθευτές</a>
-        <a href="#" onclick="showAddAnimalForm()">Προσθήκη Ζώου</a>
+        <ul>
+            <li><a href="#" id="link-Ζώα" onclick="loadSection('Ζώα')">Ζώα</a></li>
+            <li><a href="#" id="link-Είδη" onclick="loadSection('Είδη')">Είδη</a></li>
+            <li><a href="#" id="link-Εκδηλώσεις" onclick="loadSection('Εκδηλώσεις')">Εκδηλώσεις</a></li>
+            <li><a href="#" id="link-Εισιτήρια" onclick="loadSection('Εισιτήρια')">Εισιτήρια</a></li>
+            <li><a href="#" id="link-Ταμίες" onclick="loadSection('Ταμίες')">Ταμίες</a></li>
+            <li><a href="#" id="link-Επισκέπτες" onclick="loadSection('Επισκέπτες')">Επισκέπτες</a></li>
+            <li><a href="#" id="link-Φροντιστές" onclick="loadSection('Φροντιστές')">Φροντιστές</a></li>
+            <li><a href="#" id="link-Προμηθευτές" onclick="loadSection('Προμηθευτές')">Προμηθευτές</a></li>
+            <li><a href="#" id="link-Προσθήκη" onclick="showAddAnimalForm()">Προσθήκη Ζώου</a></li>
+        </ul>
     </nav>
 
-    <section id="content">
-        <!-- Τα δεδομένα θα φορτώνονται δυναμικά εδώ -->
-    </section>
+    <main>
+        <div id="loading" style="display: none;" class="loading-spinner">Φόρτωση...</div>
+        
+        <div id="content">
+            <!-- Εδώ θα φορτώνεται το περιεχόμενο δυναμικά -->
+        </div>
 
-    <section id="addAnimalFormContainer" style="display: none;">
-        <h2>Προσθήκη Νέου Ζώου</h2>
-        <form id="addAnimalForm" onsubmit="addAnimal(event)">
-            <input type="text" id="newAnimalName" placeholder="Όνομα Ζώου" required />
-            <input type="text" id="newAnimalCode" placeholder="Κωδικός Ζώου" required />
-            <input type="number" id="newAnimalYear" placeholder="Έτος Γέννησης" required />
-            <input type="text" id="newAnimalType" placeholder="Είδος Ζώου" required />
-            <button type="submit">Προσθήκη</button>
-        </form>
-    </section>
+        <div id="addAnimalFormContainer" style="display: none;">
+            <h2>Προσθήκη Νέου Ζώου</h2>
+            <form id="addAnimalForm" onsubmit="submitNewAnimal(event)">
+                <div class="form-group">
+                    <label for="animalCode">Κωδικός:</label>
+                    <input type="text" id="animalCode" name="kodikos" required pattern="Z\d{6}" title="Ο κωδικός πρέπει να ξεκινάει με 'Z' και να ακολουθούν 6 ψηφία">
+                </div>
+                <div class="form-group">
+                    <label for="animalName">Όνομα:</label>
+                    <input type="text" id="animalName" name="onoma" required>
+                </div>
+                <div class="form-group">
+                    <label for="birthYear">Έτος Γέννησης:</label>
+                    <input type="number" id="birthYear" name="etos_genesis" required min="1900" max="2024">
+                </div>
+                <div class="form-group">
+                    <label for="species">Είδος:</label>
+                    <select id="species" name="onoma_eidous" required>
+                        <!-- Θα γεμίσει δυναμικά από τη βάση -->
+                    </select>
+                </div>
+                <button type="submit">Προσθήκη</button>
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        <p>Ζωολογικός Κήπος © 2024</p>
+    </footer>
+
+    <script src="script.js"></script>
 </body>
 </html>
