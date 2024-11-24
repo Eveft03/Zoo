@@ -1,27 +1,13 @@
-// Φόρτωση δεδομένων και ενημέρωση active class
+// Φόρτωση δεδομένων μέσω AJAX
 function loadSection(section) {
-    // Απόκρυψη φόρμας προσθήκης ζώου όταν αλλάζει η ενότητα
-    document.getElementById("addAnimalFormContainer").style.display = "none";
-
-    // Ενημέρωση active class
-    const links = document.querySelectorAll("nav a");
-    links.forEach(link => link.classList.remove("active"));
-
-    const activeLink = Array.from(links).find(link => link.textContent === section);
-    if (activeLink) activeLink.classList.add("active");
-
-    // AJAX για φόρτωση περιεχομένου
     const xhr = new XMLHttpRequest();
-    xhr.open("GET", `index.php?section=${section.toLowerCase()}`, true);
+    xhr.open("GET", `index.php?section=${section}`, true);
     xhr.onload = function () {
-        if (this.status === 200 && this.responseText.trim() !== '') {
+        if (this.status === 200) {
             document.getElementById("content").innerHTML = this.responseText;
         } else {
-            document.getElementById("content").innerHTML = "<p>Δεν βρέθηκαν δεδομένα για την ενότητα.</p>";
+            document.getElementById("content").innerHTML = `<p>Η ενότητα που ζητήσατε δεν υπάρχει.</p>`;
         }
-    };
-    xhr.onerror = function () {
-        document.getElementById("content").innerHTML = "<p>Σφάλμα σύνδεσης με τον server.</p>";
     };
     xhr.send();
 }
@@ -30,10 +16,6 @@ function loadSection(section) {
 function showAddAnimalForm() {
     document.getElementById("content").innerHTML = ''; // Αδειάζει την ενότητα περιεχομένου
     document.getElementById("addAnimalFormContainer").style.display = "block";
-
-    // Ενημέρωση active class
-    const links = document.querySelectorAll("nav a");
-    links.forEach(link => link.classList.remove("active"));
 }
 
 // Υποβολή φόρμας προσθήκης ζώου
@@ -52,15 +34,14 @@ function addAnimal(event) {
             alert(this.responseText);
             document.getElementById("addAnimalForm").reset();
             document.getElementById("addAnimalFormContainer").style.display = "none";
+        } else {
+            alert("Πρόβλημα κατά την προσθήκη του ζώου.");
         }
-    };
-    xhr.onerror = function () {
-        alert("Σφάλμα κατά την υποβολή της φόρμας.");
     };
     xhr.send(formData);
 }
 
-// Φόρτωση αρχικών δεδομένων
+// Αυτόματη φόρτωση της αρχικής ενότητας "Ζώα"
 document.addEventListener("DOMContentLoaded", function () {
     loadSection('Ζώα');
 });

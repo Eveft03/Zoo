@@ -1,14 +1,12 @@
 <?php
-$servername = "localhost"; // Επειδή τρέχει τοπικά
-$username = "root"; // Το προεπιλεγμένο username του MySQL
-$password = ""; // Άφησε το κενό αν δεν έχεις βάλει κωδικό στον MySQL
-$dbname = "ZWOLOGIKOS_KHPOS"; // Το όνομα της βάσης δεδομένων σου
+$host = 'localhost';
+$user = 'root'; // Αν δεν έχετε ορίσει κωδικό για τη MySQL, αφήστε το κενό.
+$password = ''; 
+$database = 'zoologikos_kipos';
 
-// Δημιουργία σύνδεσης
-$conn = new mysqli($servername, $username, $password, $dbname);
+$conn = new mysqli($host, $user, $password, $database);
 
-// Έλεγχος σύνδεσης
 if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+    die("Σφάλμα σύνδεσης: " . $conn->connect_error);
 }
 ?>
