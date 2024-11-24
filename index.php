@@ -1,11 +1,11 @@
 <?php
 include 'db_connection.php';
 
-// Έλεγχος για την παράμετρο "section"
 if (isset($_GET['section'])) {
     $section = $_GET['section'];
 
     if ($section === 'animals') {
+        // Ενότητα Ζώα
         $sql = "SELECT ZWO.Kodikos, ZWO.Onoma, ZWO.Etos_Genesis, EIDOS.Katigoria 
                 FROM ZWO 
                 INNER JOIN EIDOS ON ZWO.Onoma_Eidous = EIDOS.Onoma";
@@ -29,10 +29,11 @@ if (isset($_GET['section'])) {
         }
         echo "</table>";
     } elseif ($section === 'eidos') {
-        $sql = "SELECT * FROM EIDOS";
+        // Ενότητα Είδη
+        $sql = "SELECT Onoma, Katigoria, Perigrafi FROM EIDOS";
         $result = $conn->query($sql);
 
-        echo "<h2>Είδη</h2>";
+        echo "<h2>Λίστα Ειδών</h2>";
         echo "<table>
                 <tr>
                     <th>Όνομα</th>
@@ -48,10 +49,11 @@ if (isset($_GET['section'])) {
         }
         echo "</table>";
     } elseif ($section === 'events') {
-        $sql = "SELECT * FROM EKDILOSI";
+        // Ενότητα Εκδηλώσεις
+        $sql = "SELECT Titlos, Hmerominia, Ora, Xwros FROM EKDILOSI";
         $result = $conn->query($sql);
 
-        echo "<h2>Εκδηλώσεις</h2>";
+        echo "<h2>Λίστα Εκδηλώσεων</h2>";
         echo "<table>
                 <tr>
                     <th>Τίτλος</th>
@@ -69,30 +71,43 @@ if (isset($_GET['section'])) {
         }
         echo "</table>";
     } elseif ($section === 'tickets') {
-        $sql = "SELECT EISITIRIO.Kodikos, EISITIRIO.Hmerominia_Ekdoshs, EISITIRIO.Timi, EPISKEPTIS.Onoma, EPISKEPTIS.Eponymo 
-                FROM EISITIRIO
-                INNER JOIN EPISKEPTIS ON EISITIRIO.Email = EPISKEPTIS.Email";
+        // Ενότητα Εισιτήρια
+        $sql = "SELECT Kodikos, Hmerominia_Ekdoshs, Timi, Katigoria 
+                FROM EISITIRIO";
         $result = $conn->query($sql);
 
-        echo "<h2>Εισιτήρια</h2>";
+        echo "<h2>Λίστα Εισιτηρίων</h2>";
         echo "<table>
                 <tr>
                     <th>Κωδικός</th>
                     <th>Ημερομηνία Έκδοσης</th>
                     <th>Τιμή</th>
-                    <th>Όνομα Επισκέπτη</th>
-                    <th>Επώνυμο Επισκέπτη</th>
+                    <th>Κατηγορία</th>
                 </tr>";
         while ($row = $result->fetch_assoc()) {
             echo "<tr>
                     <td>{$row['Kodikos']}</td>
                     <td>{$row['Hmerominia_Ekdoshs']}</td>
                     <td>{$row['Timi']}</td>
-                    <td>{$row['Onoma']}</td>
-                    <td>{$row['Eponymo']}</td>
+                    <td>{$row['Katigoria']}</td>
                   </tr>";
         }
         echo "</table>";
+    } elseif ($section === 'addAnimal') {
+        // Εισαγωγή Νέου Ζώου
+        $name = $_POST['name'];
+        $code = $_POST['code'];
+        $year = $_POST['year'];
+        $type = $_POST['type'];
+
+        $sql = "INSERT INTO ZWO (Kodikos, Onoma, Etos_Genesis, Onoma_Eidous) 
+                VALUES ('$code', '$name', $year, '$type')";
+
+        if ($conn->query($sql) === TRUE) {
+            echo "Το ζώο προστέθηκε επιτυχώς!";
+        } else {
+            echo "Σφάλμα: " . $conn->error;
+        }
     }
 }
 ?>

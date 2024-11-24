@@ -6,8 +6,11 @@
     <title>Ζωολογικός Κήπος</title>
     <link rel="stylesheet" href="style.css">
     <script>
-        // Λειτουργία για φόρτωση δεδομένων μέσω AJAX
+        // Φόρτωση δεδομένων μέσω AJAX
         function loadSection(section) {
+            // Απόκρυψη φόρμας προσθήκης ζώου όταν αλλάζει η ενότητα
+            document.getElementById("addAnimalFormContainer").style.display = "none";
+
             const xhr = new XMLHttpRequest();
             xhr.open("GET", `index.php?section=${section}`, true);
             xhr.onload = function () {
@@ -18,7 +21,34 @@
             xhr.send();
         }
 
-        // Φόρτωση της αρχικής ενότητας (π.χ., ζώα)
+        // Εμφάνιση φόρμας προσθήκης ζώου
+        function showAddAnimalForm() {
+            document.getElementById("content").innerHTML = ''; // Αδειάζει την ενότητα περιεχομένου
+            document.getElementById("addAnimalFormContainer").style.display = "block";
+        }
+
+        // Υποβολή φόρμας προσθήκης ζώου
+        function addAnimal(event) {
+            event.preventDefault();
+            const formData = new FormData();
+            formData.append("name", document.getElementById("newAnimalName").value);
+            formData.append("code", document.getElementById("newAnimalCode").value);
+            formData.append("year", document.getElementById("newAnimalYear").value);
+            formData.append("type", document.getElementById("newAnimalType").value);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "index.php?section=addAnimal", true);
+            xhr.onload = function () {
+                if (this.status === 200) {
+                    alert(this.responseText);
+                    document.getElementById("addAnimalForm").reset();
+                    document.getElementById("addAnimalFormContainer").style.display = "none";
+                }
+            };
+            xhr.send(formData);
+        }
+
+        // Φόρτωση αρχικών δεδομένων
         document.addEventListener("DOMContentLoaded", function () {
             loadSection('animals');
         });
@@ -30,9 +60,22 @@
         <a href="#" onclick="loadSection('eidos')">Είδη</a>
         <a href="#" onclick="loadSection('events')">Εκδηλώσεις</a>
         <a href="#" onclick="loadSection('tickets')">Εισιτήρια</a>
+        <a href="#" onclick="showAddAnimalForm()">Προσθήκη Ζώου</a>
     </nav>
+
     <section id="content">
         <!-- Τα δεδομένα θα φορτώνονται δυναμικά εδώ -->
+    </section>
+
+    <section id="addAnimalFormContainer" style="display: none;">
+        <h2>Προσθήκη Νέου Ζώου</h2>
+        <form id="addAnimalForm" onsubmit="addAnimal(event)">
+            <input type="text" id="newAnimalName" placeholder="Όνομα Ζώου" required />
+            <input type="text" id="newAnimalCode" placeholder="Κωδικός Ζώου" required />
+            <input type="number" id="newAnimalYear" placeholder="Έτος Γέννησης" required />
+            <input type="text" id="newAnimalType" placeholder="Είδος Ζώου" required />
+            <button type="submit">Προσθήκη</button>
+        </form>
     </section>
 </body>
 </html>
