@@ -312,3 +312,227 @@ async function loadSection(section, page = 1) {
 document.addEventListener('DOMContentLoaded', () => {
     loadSection('Ζώα');
 });
+
+// Generic form handling functions
+function showForm(formType, entityType, data = null) {
+    const contentElement = document.getElementById('content');
+    if (!contentElement) return;
+
+    // Hide main content and other forms
+    contentElement.innerHTML = '';
+    const existingForms = document.querySelectorAll('.entity-form-container');
+    existingForms.forEach(form => form.style.display = 'none');
+
+    // Create form container
+    const formContainer = document.createElement('div');
+    formContainer.className = 'entity-form-container';
+    formContainer.id = `${entityType}FormContainer`;
+
+    // Create form title
+    const formTitle = document.createElement('h2');
+    formTitle.textContent = `${formType} ${entityType}`;
+    formContainer.appendChild(formTitle);
+
+    // Create form element
+    const form = document.createElement('form');
+    form.id = `${entityType}Form`;
+    form.className = 'entity-form';
+    form.onsubmit = (e) => handleFormSubmit(e, entityType, formType, data?.id);
+
+    // Add form fields based on entity type
+    const fields = getFormFields(entityType);
+    fields.forEach(field => {
+        const formGroup = document.createElement('div');
+        formGroup.className = 'form-group';
+
+        const label = document.createElement('label');
+        label.htmlFor = field.name;
+        label.textContent = field.label;
+
+        let input;
+        if (field.type === 'select') {
+            input = document.createElement('select');
+            loadDropdownOptions(input, field.source);
+        } else {
+            input = document.createElement('input');
+            input.type = field.type;
+        }
+
+        input.id = field.name;
+        input.name = field.name;
+        input.required = field.required !== false;
+
+        // If editing, populate with existing data
+        if (data && data[field.name]) {
+            input.value = data[field.name];
+        }
+
+        formGroup.appendChild(label);
+        formGroup.appendChild(input);
+        form.appendChild(formGroup);
+    });
+
+    // Add submit button
+    const submitButton = document.createElement('button');
+    submitButton.type = 'submit';
+    submitButton.textContent = formType;
+    form.appendChild(submitButton);
+
+    // Add cancel button
+    const cancelButton = document.createElement('button');
+    cancelButton.type = 'button';
+    cancelButton.textContent = 'Ακύρωση';
+    cancelButton.onclick = () => loadSection(entityType);
+    cancelButton.className = 'cancel-button';
+    form.appendChild(cancelButton);
+
+    formContainer.appendChild(form);
+    contentElement.appendChild(formContainer);
+}
+
+// Get form fields configuration based on entity type
+function getFormFields(entityType) {
+    const fieldConfigs = {
+        'Ζώα': [
+            { name: 'kodikos', label: 'Κωδικός', type: 'text' },
+            { name: 'onoma', label: 'Όνομα', type: 'text' },
+            { name: 'etos_genesis', label: 'Έτος Γέννησης', type: 'number' },
+            { name: 'onoma_eidous', label: 'Είδος', type: 'select', source: 'get_species.php' }
+        ],
+        'Είδη': [
+            { name: 'onoma', label: 'Όνομα', type: 'text' },
+            { name: 'katigoria', label: 'Κατηγορία', type: 'text' },
+            { name: 'perigrafi', label: 'Περιγραφή', type: 'text' }
+        ],
+        'Εκδηλώσεις': [
+            { name: 'titlos', label: 'Τίτλος', type: 'text' },
+            { name: 'hmerominia', label: 'Ημερομηνία', type: 'date' },
+            { name: 'perigrafi', label: 'Περιγραφή', type: 'text' }
+        ],
+        // Add configurations for other entities...
+    };
+
+    return fieldConfigs[entityType] || [];
+}
+
+// Handle form submission
+async function handleFormSubmit(event, entityType, formType, id = null) {
+    event.preventDefault();
+    showLoading();
+
+    try {
+        const formData = new FormData(event.target);
+        const action = formType.toLowerCase();
+        const response = await fetch(`${action}_${entityType.toLowerCase()}.php`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+        if (result.status === 'error') {
+            throw new Error(result.message);
+        }
+
+        showMessage(result.message, false);
+        setTimeout(() => loadSection(entityType), 2000);
+    } catch (error) {
+        showMessage(error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+// Load dropdown options
+async function loadDropdownOptions(selectElement, sourceUrl) {
+    try {
+        const response = await fetch(sourceUrl);
+        const data = await response.json();
+
+        selectElement.innerHTML = '<option value="">Επιλέξτε...</option>';
+
+        if (Array.isArray(data)) {
+            data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.Onoma || item.ID || item.value;
+                option.textContent = item.Onoma || item.name || item.label;
+                selectElement.appendChild(option);
+            });
+        }
+    } catch (error) {
+        showMessage(`Σφάλμα φόρτωσης επιλογών: ${error.message}`);
+    }
+}
+
+// Add action buttons to table rows
+function addActionButtons(table, entityType) {
+    const headerRow = table.querySelector('thead tr');
+    const actionHeader = document.createElement('th');
+    actionHeader.textContent = 'Ενέργειες';
+    headerRow.appendChild(actionHeader);
+
+    const rows = table.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        const actionCell = document.createElement('td');
+        actionCell.className = 'action-buttons';
+
+        // Edit button
+        const editButton = document.createElement('button');
+        editButton.className = 'edit-button';
+        editButton.textContent = 'Επεξεργασία';
+        editButton.onclick = () => showForm('Επεξεργασία', entityType, getRowData(row));
+
+        // Delete button
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'delete-button';
+        deleteButton.textContent = 'Διαγραφή';
+        deleteButton.onclick = () => handleDelete(entityType, getRowData(row));
+
+        actionCell.appendChild(editButton);
+        actionCell.appendChild(deleteButton);
+        row.appendChild(actionCell);
+    });
+}
+
+// Get row data as object
+function getRowData(row) {
+    const cells = row.cells;
+    const headers = row.parentElement.parentElement.querySelector('thead tr').cells;
+    const data = {};
+
+    for (let i = 0; i < cells.length - 1; i++) {
+        const header = headers[i].textContent;
+        data[header] = cells[i].textContent;
+    }
+
+    return data;
+}
+
+// Handle delete operation
+async function handleDelete(entityType, rowData) {
+    if (!confirm(`Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το στοιχείο;`)) {
+        return;
+    }
+
+    try {
+        showLoading();
+        const response = await fetch(`delete_${entityType.toLowerCase()}.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(rowData)
+        });
+
+        const result = await response.json();
+        if (result.status === 'error') {
+            throw new Error(result.message);
+        }
+
+        showMessage(result.message, false);
+        loadSection(entityType);
+    } catch (error) {
+        showMessage(error.message);
+    } finally {
+        hideLoading();
+    }
+}

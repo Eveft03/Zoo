@@ -294,3 +294,30 @@ footer {
     color: #666;
     font-size: 0.9rem;
 }
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.edit-button,
+.delete-button {
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.edit-button {
+    background-color: #3498db;
+    color: white;
+}
+
+.delete-button {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.cancel-button {
+    background-color: #95a5a6;
+    margin-left: 0.5rem;
+}
