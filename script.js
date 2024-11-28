@@ -1,239 +1,58 @@
-// Utilities
+// ================ Utility Functions ================
+
+/**
+ * Εμφανίζει τον loading spinner κατά τη διάρκεια των ασύγχρονων λειτουργιών
+ */
 function showLoading() {
-    const loadingElement = document.getElementById('loading');
-    if (loadingElement) {
-        loadingElement.style.display = 'block';
-    }
+    document.getElementById('loading').style.display = 'flex';
 }
 
+/**
+ * Κρύβει τον loading spinner μετά την ολοκλήρωση των ασύγχρονων λειτουργιών
+ */
 function hideLoading() {
-    const loadingElement = document.getElementById('loading');
-    if (loadingElement) {
-        loadingElement.style.display = 'none';
-    }
+    document.getElementById('loading').style.display = 'none';
 }
 
-// Error handling
-function showMessage(message, isError = true) {
+/**
+ * Εμφανίζει μηνύματα επιτυχίας ή σφάλματος στον χρήστη
+ * @param {string} message - Το μήνυμα που θα εμφανιστεί
+ * @param {boolean} isError - Αν είναι μήνυμα σφάλματος (true) ή επιτυχίας (false)
+ */
+function showMessage(message, isError = false) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${isError ? 'error-message' : 'success-message'}`;
+    messageDiv.textContent = message;
+
     const contentElement = document.getElementById('content');
-    if (contentElement) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = isError ? 'error-message' : 'success-message';
-        messageDiv.textContent = message;
-
-        // Remove any existing messages
-        const existingMessages = document.querySelectorAll('.error-message, .success-message');
-        existingMessages.forEach(msg => msg.remove());
-
-        contentElement.prepend(messageDiv);
-        setTimeout(() => {
-            if (messageDiv.parentNode) {
-                messageDiv.remove();
-            }
-        }, 5000);
+    const existingMessage = contentElement.querySelector('.message');
+    if (existingMessage) {
+        existingMessage.remove();
     }
+
+    contentElement.insertBefore(messageDiv, contentElement.firstChild);
+    setTimeout(() => messageDiv.remove(), 5000);
 }
 
-// Update active navigation item
+// ================ Navigation Functions ================
+
+/**
+ * Ενημερώνει το active link στο navigation menu
+ * @param {string} section - Η τρέχουσα ενότητα
+ */
 function updateActiveNavigation(section) {
     document.querySelectorAll('nav a').forEach(link => {
-        link.classList.remove('active');
-        if (section === 'addAnimal' && link.id === 'link-Προσθήκη') {
-            link.classList.add('active');
-        } else if (link.textContent === section) {
-            link.classList.add('active');
-        }
+        link.classList.toggle('active', link.textContent === section);
     });
 }
 
-// Pagination function
-function createPagination(paginationData, currentSection) {
-    const paginationContainer = document.createElement('div');
-    paginationContainer.className = 'pagination';
-
-    // Previous page button
-    if (paginationData.currentPage > 1) {
-        const prevButton = document.createElement('a');
-        prevButton.href = '#';
-        prevButton.textContent = '«';
-        prevButton.onclick = (e) => {
-            e.preventDefault();
-            loadSection(currentSection, paginationData.currentPage - 1);
-        };
-        paginationContainer.appendChild(prevButton);
-    }
-
-    // Page numbers
-    let startPage = Math.max(1, paginationData.currentPage - 2);
-    let endPage = Math.min(paginationData.totalPages, paginationData.currentPage + 2);
-
-    if (startPage > 1) {
-        const firstPage = document.createElement('a');
-        firstPage.href = '#';
-        firstPage.textContent = '1';
-        firstPage.onclick = (e) => {
-            e.preventDefault();
-            loadSection(currentSection, 1);
-        };
-        paginationContainer.appendChild(firstPage);
-
-        if (startPage > 2) {
-            const dots = document.createElement('span');
-            dots.textContent = '...';
-            dots.className = 'pagination-dots';
-            paginationContainer.appendChild(dots);
-        }
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-        const pageLink = document.createElement('a');
-        pageLink.href = '#';
-        pageLink.textContent = i;
-        if (i === paginationData.currentPage) {
-            pageLink.className = 'active';
-        }
-        pageLink.onclick = (e) => {
-            e.preventDefault();
-            loadSection(currentSection, i);
-        };
-        paginationContainer.appendChild(pageLink);
-    }
-
-    if (endPage < paginationData.totalPages) {
-        if (endPage < paginationData.totalPages - 1) {
-            const dots = document.createElement('span');
-            dots.textContent = '...';
-            dots.className = 'pagination-dots';
-            paginationContainer.appendChild(dots);
-        }
-
-        const lastPage = document.createElement('a');
-        lastPage.href = '#';
-        lastPage.textContent = paginationData.totalPages;
-        lastPage.onclick = (e) => {
-            e.preventDefault();
-            loadSection(currentSection, paginationData.totalPages);
-        };
-        paginationContainer.appendChild(lastPage);
-    }
-
-    // Next page button
-    if (paginationData.currentPage < paginationData.totalPages) {
-        const nextButton = document.createElement('a');
-        nextButton.href = '#';
-        nextButton.textContent = '»';
-        nextButton.onclick = (e) => {
-            e.preventDefault();
-            loadSection(currentSection, paginationData.currentPage + 1);
-        };
-        paginationContainer.appendChild(nextButton);
-    }
-
-    return paginationContainer;
-}
-
-// Load species for dropdown
-async function loadSpecies() {
-    const speciesSelect = document.getElementById('species');
-    if (!speciesSelect) return;
-
-    try {
-        const response = await fetch('get_species.php');
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        // Clear existing options
-        speciesSelect.innerHTML = '<option value="">Επιλέξτε είδος</option>';
-
-        // Add new options
-        if (Array.isArray(data)) {
-            data.forEach(specie => {
-                const option = document.createElement('option');
-                option.value = specie.Onoma;
-                option.textContent = specie.Onoma;
-                speciesSelect.appendChild(option);
-            });
-        }
-    } catch (error) {
-        showMessage('Σφάλμα φόρτωσης ειδών: ' + error.message);
-    }
-}
-
-// Show add animal form
-function showAddAnimalForm() {
-    // Update active navigation
-    updateActiveNavigation('addAnimal');
-
-    // Hide main content
-    const contentElement = document.getElementById('content');
-    if (contentElement) {
-        contentElement.innerHTML = '';
-    }
-
-    // Show form container
-    const formContainer = document.getElementById('addAnimalFormContainer');
-    if (formContainer) {
-        formContainer.style.display = 'block';
-
-        // Load species if not already loaded
-        const speciesSelect = document.getElementById('species');
-        if (speciesSelect) {
-            loadSpecies();
-        }
-    }
-}
-
-// Submit new animal
-async function submitNewAnimal(event) {
-    event.preventDefault();
-
-    try {
-        showLoading();
-
-        const formData = new FormData(event.target);
-        const response = await fetch('add_animal.php', {
-            method: 'POST',
-            body: formData
-        });
-
-        const result = await response.json();
-
-        if (result.status === 'error') {
-            throw new Error(result.message);
-        }
-
-        // Show success message
-        showMessage(result.message, false);
-
-        // Clear form
-        event.target.reset();
-
-        // Return to animals list after 2 seconds
-        setTimeout(() => {
-            loadSection('Ζώα');
-        }, 2000);
-
-    } catch (error) {
-        showMessage(error.message);
-    } finally {
-        hideLoading();
-    }
-}
-
-// Load section content
+/**
+ * Κύρια συνάρτηση φόρτωσης περιεχομένου ενότητας
+ * @param {string} section - Η ενότητα προς φόρτωση
+ * @param {number} page - Ο αριθμός σελίδας για pagination
+ */
 async function loadSection(section, page = 1) {
-    // Update active navigation
     updateActiveNavigation(section);
-
-    // Hide add animal form
-    const formContainer = document.getElementById('addAnimalFormContainer');
-    if (formContainer) {
-        formContainer.style.display = 'none';
-    }
-
     const contentElement = document.getElementById('content');
     if (!contentElement) return;
 
@@ -241,297 +60,296 @@ async function loadSection(section, page = 1) {
         showLoading();
 
         const response = await fetch(`index.php?section=${encodeURIComponent(section)}&page=${page}`);
-        if (!response.ok) {
-            throw new Error('Σφάλμα δικτύου');
-        }
+        if (!response.ok) throw new Error('Σφάλμα δικτύου');
 
         const data = await response.json();
-        if (data.status === 'error') {
-            throw new Error(data.message);
-        }
+        if (data.status === 'error') throw new Error(data.message);
 
-        contentElement.innerHTML = ''; // Clear previous content
+        contentElement.innerHTML = '';
 
-        // Create table if we have data
+        // Προσθήκη κουμπιού για νέα εγγραφή
+        const addButton = document.createElement('button');
+        addButton.className = 'add-button';
+        addButton.textContent = `Προσθήκη ${section}`;
+        addButton.onclick = () => showForm('Προσθήκη', section);
+        contentElement.appendChild(addButton);
+
         if (data.data && data.data.length > 0) {
-            const table = document.createElement('table');
+            // Εμφάνιση πληροφοριών σελιδοποίησης
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'pagination-info';
+            const start = (data.pagination.currentPage - 1) * data.pagination.itemsPerPage + 1;
+            const end = Math.min(start + data.pagination.itemsPerPage - 1, data.pagination.totalItems);
+            infoDiv.textContent = `Εμφάνιση ${start}-${end} από ${data.pagination.totalItems} ${section}`;
+            contentElement.appendChild(infoDiv);
 
-            // Headers
-            const thead = document.createElement('thead');
-            const headerRow = document.createElement('tr');
-            Object.keys(data.data[0]).forEach(key => {
-                const th = document.createElement('th');
-                th.textContent = key;
-                headerRow.appendChild(th);
-            });
-            thead.appendChild(headerRow);
-            table.appendChild(thead);
-
-            // Body
-            const tbody = document.createElement('tbody');
-            data.data.forEach(row => {
-                const tr = document.createElement('tr');
-                Object.values(row).forEach(value => {
-                    const td = document.createElement('td');
-                    td.textContent = value !== null ? value : '';
-                    tr.appendChild(td);
-                });
-                tbody.appendChild(tr);
-            });
-            table.appendChild(tbody);
-
-            // Στη συνάρτηση loadSection στο script.js, πριν το contentElement.appendChild(table):
-
-            if (data.pagination) {
-                const infoDiv = document.createElement('div');
-                infoDiv.className = 'pagination-info';
-                const start = (data.pagination.currentPage - 1) * data.pagination.itemsPerPage + 1;
-                const end = Math.min(start + data.pagination.itemsPerPage - 1, data.pagination.totalItems);
-                infoDiv.textContent = `Εμφάνιση ${start}-${end} από ${data.pagination.totalItems} ${section}`;
-                contentElement.appendChild(infoDiv);
-            }
-
+            // Δημιουργία πίνακα δεδομένων
+            const table = createDataTable(data.data, section);
             contentElement.appendChild(table);
 
-            // Add pagination if needed
+            // Προσθήκη pagination αν υπάρχουν πολλές σελίδες
             if (data.pagination && data.pagination.totalPages > 1) {
-                contentElement.appendChild(createPagination(data.pagination, section));
+                const pagination = createPagination(data.pagination, section);
+                contentElement.appendChild(pagination);
             }
         } else {
-            contentElement.innerHTML = '<p>Δεν βρέθηκαν δεδομένα</p>';
+            const noDataMessage = document.createElement('p');
+            noDataMessage.textContent = 'Δεν βρέθηκαν δεδομένα';
+            contentElement.appendChild(noDataMessage);
         }
-
     } catch (error) {
-        showMessage(error.message);
+        showMessage(error.message, true);
     } finally {
         hideLoading();
     }
 }
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
-    loadSection('Ζώα');
-});
+/**
+ * Δημιουργεί τον πίνακα δεδομένων με τα controls
+ * @param {Array} data - Τα δεδομένα προς εμφάνιση
+ * @param {string} section - Η τρέχουσα ενότητα
+ * @returns {HTMLElement} - Ο πίνακας με τα δεδομένα
+ */
+function createDataTable(data, section) {
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    const tbody = document.createElement('tbody');
 
-// Generic form handling functions
-function showForm(formType, entityType, data = null) {
-    const contentElement = document.getElementById('content');
-    if (!contentElement) return;
-
-    // Hide main content and other forms
-    contentElement.innerHTML = '';
-    const existingForms = document.querySelectorAll('.entity-form-container');
-    existingForms.forEach(form => form.style.display = 'none');
-
-    // Create form container
-    const formContainer = document.createElement('div');
-    formContainer.className = 'entity-form-container';
-    formContainer.id = `${entityType}FormContainer`;
-
-    // Create form title
-    const formTitle = document.createElement('h2');
-    formTitle.textContent = `${formType} ${entityType}`;
-    formContainer.appendChild(formTitle);
-
-    // Create form element
-    const form = document.createElement('form');
-    form.id = `${entityType}Form`;
-    form.className = 'entity-form';
-    form.onsubmit = (e) => handleFormSubmit(e, entityType, formType, data?.id);
-
-    // Add form fields based on entity type
-    const fields = getFormFields(entityType);
-    fields.forEach(field => {
-        const formGroup = document.createElement('div');
-        formGroup.className = 'form-group';
-
-        const label = document.createElement('label');
-        label.htmlFor = field.name;
-        label.textContent = field.label;
-
-        let input;
-        if (field.type === 'select') {
-            input = document.createElement('select');
-            loadDropdownOptions(input, field.source);
-        } else {
-            input = document.createElement('input');
-            input.type = field.type;
-        }
-
-        input.id = field.name;
-        input.name = field.name;
-        input.required = field.required !== false;
-
-        // If editing, populate with existing data
-        if (data && data[field.name]) {
-            input.value = data[field.name];
-        }
-
-        formGroup.appendChild(label);
-        formGroup.appendChild(input);
-        form.appendChild(formGroup);
+    // Δημιουργία headers
+    const headerRow = document.createElement('tr');
+    Object.keys(data[0]).forEach(key => {
+        const th = document.createElement('th');
+        th.textContent = key;
+        headerRow.appendChild(th);
     });
 
-    // Add submit button
-    const submitButton = document.createElement('button');
-    submitButton.type = 'submit';
-    submitButton.textContent = formType;
-    form.appendChild(submitButton);
+    // Προσθήκη header για τις ενέργειες
+    const actionsHeader = document.createElement('th');
+    actionsHeader.textContent = 'Ενέργειες';
+    headerRow.appendChild(actionsHeader);
 
-    // Add cancel button
-    const cancelButton = document.createElement('button');
-    cancelButton.type = 'button';
-    cancelButton.textContent = 'Ακύρωση';
-    cancelButton.onclick = () => loadSection(entityType);
-    cancelButton.className = 'cancel-button';
-    form.appendChild(cancelButton);
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
 
-    formContainer.appendChild(form);
-    contentElement.appendChild(formContainer);
-}
-
-// Get form fields configuration based on entity type
-function getFormFields(entityType) {
-    const fieldConfigs = {
-        'Ζώα': [
-            { name: 'kodikos', label: 'Κωδικός', type: 'text' },
-            { name: 'onoma', label: 'Όνομα', type: 'text' },
-            { name: 'etos_genesis', label: 'Έτος Γέννησης', type: 'number' },
-            { name: 'onoma_eidous', label: 'Είδος', type: 'select', source: 'get_species.php' }
-        ],
-        'Είδη': [
-            { name: 'onoma', label: 'Όνομα', type: 'text' },
-            { name: 'katigoria', label: 'Κατηγορία', type: 'text' },
-            { name: 'perigrafi', label: 'Περιγραφή', type: 'text' }
-        ],
-        'Εκδηλώσεις': [
-            { name: 'titlos', label: 'Τίτλος', type: 'text' },
-            { name: 'hmerominia', label: 'Ημερομηνία', type: 'date' },
-            { name: 'perigrafi', label: 'Περιγραφή', type: 'text' }
-        ],
-        // Add configurations for other entities...
-    };
-
-    return fieldConfigs[entityType] || [];
-}
-
-// Handle form submission
-async function handleFormSubmit(event, entityType, formType, id = null) {
-    event.preventDefault();
-    showLoading();
-
-    try {
-        const formData = new FormData(event.target);
-        const action = formType.toLowerCase();
-        const response = await fetch(`${action}_${entityType.toLowerCase()}.php`, {
-            method: 'POST',
-            body: formData
+    // Δημιουργία γραμμών δεδομένων
+    data.forEach(row => {
+        const tr = document.createElement('tr');
+        
+        // Προσθήκη κελιών δεδομένων
+        Object.values(row).forEach(value => {
+            const td = document.createElement('td');
+            td.textContent = value !== null ? value : '';
+            tr.appendChild(td);
         });
 
-        const result = await response.json();
-        if (result.status === 'error') {
-            throw new Error(result.message);
-        }
-
-        showMessage(result.message, false);
-        setTimeout(() => loadSection(entityType), 2000);
-    } catch (error) {
-        showMessage(error.message);
-    } finally {
-        hideLoading();
-    }
-}
-
-// Load dropdown options
-async function loadDropdownOptions(selectElement, sourceUrl) {
-    try {
-        const response = await fetch(sourceUrl);
-        const data = await response.json();
-
-        selectElement.innerHTML = '<option value="">Επιλέξτε...</option>';
-
-        if (Array.isArray(data)) {
-            data.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.Onoma || item.ID || item.value;
-                option.textContent = item.Onoma || item.name || item.label;
-                selectElement.appendChild(option);
-            });
-        }
-    } catch (error) {
-        showMessage(`Σφάλμα φόρτωσης επιλογών: ${error.message}`);
-    }
-}
-
-// Add action buttons to table rows
-function addActionButtons(table, entityType) {
-    const headerRow = table.querySelector('thead tr');
-    const actionHeader = document.createElement('th');
-    actionHeader.textContent = 'Ενέργειες';
-    headerRow.appendChild(actionHeader);
-
-    const rows = table.querySelectorAll('tbody tr');
-    rows.forEach(row => {
-        const actionCell = document.createElement('td');
-        actionCell.className = 'action-buttons';
-
-        // Edit button
+        // Προσθήκη κουμπιών ενεργειών
+        const actionsTd = document.createElement('td');
+        actionsTd.className = 'action-buttons';
+        
         const editButton = document.createElement('button');
         editButton.className = 'edit-button';
         editButton.textContent = 'Επεξεργασία';
-        editButton.onclick = () => showForm('Επεξεργασία', entityType, getRowData(row));
-
-        // Delete button
+        editButton.onclick = () => showForm('Επεξεργασία', section, row);
+        
         const deleteButton = document.createElement('button');
         deleteButton.className = 'delete-button';
         deleteButton.textContent = 'Διαγραφή';
-        deleteButton.onclick = () => handleDelete(entityType, getRowData(row));
-
-        actionCell.appendChild(editButton);
-        actionCell.appendChild(deleteButton);
-        row.appendChild(actionCell);
+        deleteButton.onclick = () => handleDelete(section, row);
+        
+        actionsTd.appendChild(editButton);
+        actionsTd.appendChild(deleteButton);
+        tr.appendChild(actionsTd);
+        
+        tbody.appendChild(tr);
     });
+
+    table.appendChild(tbody);
+    return table;
 }
 
-// Get row data as object
-function getRowData(row) {
-    const cells = row.cells;
-    const headers = row.parentElement.parentElement.querySelector('thead tr').cells;
-    const data = {};
+// ================ Pagination Functions ================
 
-    for (let i = 0; i < cells.length - 1; i++) {
-        const header = headers[i].textContent;
-        data[header] = cells[i].textContent;
+/**
+ * Δημιουργεί το pagination component
+ * @param {Object} paginationData - Δεδομένα σελιδοποίησης
+ * @param {string} section - Η τρέχουσα ενότητα
+ * @returns {HTMLElement} - Το pagination component
+ */
+function createPagination(paginationData, section) {
+    const paginationContainer = document.createElement('div');
+    paginationContainer.className = 'pagination';
+
+    // Κουμπί προηγούμενης σελίδας
+    if (paginationData.currentPage > 1) {
+        const prevButton = createPaginationButton('«', paginationData.currentPage - 1, section);
+        paginationContainer.appendChild(prevButton);
     }
 
-    return data;
+    // Σελίδες
+    for (let i = 1; i <= paginationData.totalPages; i++) {
+        if (shouldShowPageNumber(i, paginationData.currentPage, paginationData.totalPages)) {
+            const pageButton = createPaginationButton(
+                i.toString(),
+                i,
+                section,
+                i === paginationData.currentPage
+            );
+            paginationContainer.appendChild(pageButton);
+        } else if (shouldShowEllipsis(i, paginationData.currentPage, paginationData.totalPages)) {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'pagination-dots';
+            ellipsis.textContent = '...';
+            paginationContainer.appendChild(ellipsis);
+        }
+    }
+
+    // Κουμπί επόμενης σελίδας
+    if (paginationData.currentPage < paginationData.totalPages) {
+        const nextButton = createPaginationButton('»', paginationData.currentPage + 1, section);
+        paginationContainer.appendChild(nextButton);
+    }
+
+    return paginationContainer;
 }
 
-// Handle delete operation
-async function handleDelete(entityType, rowData) {
-    if (!confirm(`Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το στοιχείο;`)) {
+/**
+ * Δημιουργεί ένα κουμπί pagination
+ * @param {string} text - Το κείμενο του κουμπιού
+ * @param {number} page - Ο αριθμός σελίδας
+ * @param {string} section - Η τρέχουσα ενότητα
+ * @param {boolean} isActive - Αν είναι η τρέχουσα σελίδα
+ * @returns {HTMLElement} - Το κουμπί pagination
+ */
+function createPaginationButton(text, page, section, isActive = false) {
+    const button = document.createElement('a');
+    button.href = '#';
+    button.textContent = text;
+    if (isActive) button.classList.add('active');
+    
+    button.onclick = (e) => {
+        e.preventDefault();
+        loadSection(section, page);
+    };
+    
+    return button;
+}
+
+/**
+ * Ελέγχει αν πρέπει να εμφανιστεί ο αριθμός σελίδας
+ */
+function shouldShowPageNumber(page, currentPage, totalPages) {
+    return page === 1 || 
+           page === totalPages || 
+           (page >= currentPage - 1 && page <= currentPage + 1);
+}
+
+/**
+ * Ελέγχει αν πρέπει να εμφανιστούν αποσιωπητικά
+ */
+function shouldShowEllipsis(page, currentPage, totalPages) {
+    return (page === 2 && currentPage > 4) || 
+           (page === totalPages - 1 && currentPage < totalPages - 3);
+}
+
+// ================ CRUD Operations ================
+
+/**
+ * Χειρίζεται τη διαγραφή εγγραφών
+ * @param {string} section - Η τρέχουσα ενότητα
+ * @param {Object} row - Τα δεδομένα της γραμμής προς διαγραφή
+ */
+async function handleDelete(section, row) {
+    if (!confirm('Είστε σίγουροι ότι θέλετε να διαγράψετε αυτή την εγγραφή;')) {
         return;
     }
 
     try {
         showLoading();
-        const response = await fetch(`delete_${entityType.toLowerCase()}.php`, {
+        const response = await fetch(`delete_${section.toLowerCase()}.php`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(rowData)
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(row)
         });
 
         const result = await response.json();
-        if (result.status === 'error') {
-            throw new Error(result.message);
-        }
+        if (result.status === 'error') throw new Error(result.message);
 
         showMessage(result.message, false);
-        loadSection(entityType);
+        loadSection(section);
     } catch (error) {
-        showMessage(error.message);
+        showMessage(error.message, true);
+    } finally {
+        hideLoading();
+    }
+}
+
+/**
+ * Εμφανίζει τη φόρμα προσθήκης/επεξεργασίας
+ * @param {string} formType - Ο τύπος της φόρμας (Προσθήκη/Επεξεργασία)
+ * @param {string} section - Η τρέχουσα ενότητα
+ * @param {Object} data - Τα δεδομένα προς επεξεργασία (null για προσθήκη)
+ */
+function showForm(formType, section, data = null) {
+    const contentElement = document.getElementById('content');
+    contentElement.innerHTML = '';
+
+    const form = document.createElement('form');
+    form.className = 'entity-form';
+    form.onsubmit = (e) => handleFormSubmit(e, section, formType);
+
+    const title = document.createElement('h2');
+    title.textContent = `${formType} ${section}`;
+    form.appendChild(title);
+
+    // Δημιουργία πεδίων φόρμας ανάλογα με την ενότητα
+    const fields = getFormFields(section);
+    fields.forEach(field => {
+        const formGroup = createFormField(field, data?.[field.name]);
+        form.appendChild(formGroup);
+    });
+
+    // Προσθήκη κουμπιών
+    const submitButton = document.createElement('button');
+    submitButton.type = 'submit';
+    submitButton.textContent = formType;
+    form.appendChild(submitButton);
+
+    const cancelButton = document.createElement('button');
+    cancelButton.type = 'button';
+    cancelButton.textContent = 'Ακύρωση';
+    cancelButton.className = 'cancel-button';
+    cancelButton.onclick = () => loadSection(section);
+    form.appendChild(cancelButton);
+
+    contentElement.appendChild(form);
+}
+
+/**
+ * Χειρίζεται την υποβολή της φόρμας
+ * @param {Event} event - Το event της φόρμας
+ * @param {string} section - Η τρέχουσα ενότητα
+ * @param {string} formType - Ο τύπος της φόρμας
+ */
+async function handleFormSubmit(event, section, formType) {
+    event.preventDefault();
+    showLoading();
+
+    try {
+        const formData = new FormData(event.target);
+        const url = `${formType === 'Προσθήκη' ? 'add' : 'update'}_${section.toLowerCase()}.php`;
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+        if (result.status === 'error') throw new Error(result.message);
+
+        showMessage(result.message, false);
+        loadSection(section);
+    } catch (error) {
+        showMessage(error.message, true);
     } finally {
         hideLoading();
     }
