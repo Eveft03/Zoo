@@ -533,7 +533,7 @@ function getFormFields(section) {
             { name: 'tilefono', label: 'Τηλέφωνο', required: true, pattern: '^\\d{10}$', type: 'tel' },
             { name: 'misthos', label: 'Μισθός', required: true, type: 'number', min: 0 }
         ],
-        'Εισιτηρία': [
+        'Εισιτήρια': [
             { name: 'arithmos', label: 'Αριθμός Εισιτηρίου', required: true, pattern: '^TK\\d{4}$', type: 'text' },
             { name: 'email', label: 'Email Επισκέπτη', required: true, type: 'email' },
             { name: 'imerominia', label: 'Ημερομηνία', required: true, type: 'date' },
