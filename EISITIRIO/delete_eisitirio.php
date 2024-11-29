@@ -1,21 +1,20 @@
+// delete_eisitirio.php
 <?php
 require_once 'db_connection.php';
-
 header('Content-Type: application/json; charset=utf-8');
 
 try {
     $db = getDatabase();
+    $data = json_decode(file_get_contents('php://input'), true);
     
-    // Validate input
-    if (!isset($_POST['arithmos']) || empty($_POST['arithmos'])) {
-        throw new Exception("Απαιτείται ο αριθμός του εισιτηρίου");
+    if (!isset($data['Arithmos'])) {
+        throw new Exception("Δεν καθορίστηκε το εισιτήριο προς διαγραφή");
     }
 
     $db->beginTransaction();
 
-    // Delete ticket
     $stmt = $db->prepare("DELETE FROM EISITIRIO WHERE Arithmos = ?");
-    $stmt->bind_param("s", $_POST['arithmos']);
+    $stmt->bind_param("s", $data['Arithmos']);
     
     if (!$stmt->execute()) {
         throw new Exception("Σφάλμα κατά τη διαγραφή του εισιτηρίου");
@@ -26,21 +25,10 @@ try {
     }
 
     $db->commit();
-
-    echo json_encode([
-        'status' => 'success',
-        'message' => 'Το εισιτήριο διαγράφηκε επιτυχώς'
-    ], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['status' => 'success', 'message' => 'Το εισιτήριο διαγράφηκε επιτυχώς']);
 
 } catch (Exception $e) {
-    if (isset($db)) {
-        $db->rollback();
-    }
-    
+    if (isset($db)) $db->rollback();
     http_response_code(400);
-    echo json_encode([
-        'status' => 'error',
-        'message' => $e->getMessage()
-    ], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }
-?>

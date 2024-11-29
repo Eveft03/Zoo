@@ -267,19 +267,27 @@ async function handleDelete(section, row) {
     try {
         showLoading();
         
-        const response = await fetch('zwo/delete_zwo.php', {
+        const paths = {
+            'Ζώα': 'zwo/delete_zwo.php',
+            'Εισιτήρια': 'eisitirio/delete_eisitirio.php',
+            'Είδη': 'eidos/delete_eidi.php',
+            'Ταμίες': 'tamias/delete_tamias.php',
+            'Φροντιστές': 'frontisths/delete_frontisth.php',
+            'Προμηθευτές': 'promhuefths/delete_promhuefth.php',
+            'Επισκέπτες': 'episkepths/delete_episkepth.php',
+            'Εκδηλώσεις': 'ekdilosi/delete_ekdilosi.php'
+        };
+
+        const response = await fetch(paths[section], {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'
             },
-            body: JSON.stringify({
-                Kodikos: row.Kodikos || row.KODIKOS
-            })
+            body: JSON.stringify(row)
         });
 
         const result = await response.json();
-        
         if (result.status === 'error') {
             throw new Error(result.message);
         }
@@ -311,7 +319,6 @@ function showForm(formType, section, data = null) {
     title.textContent = `${formType} ${section}`;
     form.appendChild(title);
 
-    // Δημιουργία πεδίων φόρμας ανάλογα με την ενότητα
     const fields = getFormFields(section);
     fields.forEach(field => {
         const formGroup = createFormField(field, data?.[field.name]);
@@ -319,21 +326,150 @@ function showForm(formType, section, data = null) {
     });
 
     // Προσθήκη κουμπιών
+    const buttonsDiv = document.createElement('div');
+    buttonsDiv.className = 'form-buttons';
+
     const submitButton = document.createElement('button');
     submitButton.type = 'submit';
     submitButton.textContent = formType;
-    form.appendChild(submitButton);
+    buttonsDiv.appendChild(submitButton);
 
     const cancelButton = document.createElement('button');
     cancelButton.type = 'button';
     cancelButton.textContent = 'Ακύρωση';
     cancelButton.className = 'cancel-button';
     cancelButton.onclick = () => loadSection(section);
-    form.appendChild(cancelButton);
+    buttonsDiv.appendChild(cancelButton);
 
+    form.appendChild(buttonsDiv);
     contentElement.appendChild(form);
 }
 
+function getFormFields(section) {
+    switch(section) {
+        case 'Ζώα':
+            return [
+                { name: 'kodikos', label: 'Κωδικός', required: true, pattern: '^Z\\d{6}$', type: 'text' },
+                { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
+                { name: 'etos_genesis', label: 'Έτος Γέννησης', required: true, type: 'number', min: 1900, max: new Date().getFullYear() },
+                { name: 'onoma_eidous', label: 'Είδος', required: true, type: 'text' }
+            ];
+        case 'Εισιτήρια':
+            return [
+                { name: 'arithmos', label: 'Αριθμός Εισιτηρίου', required: true, pattern: '^TK\\d{4}$', type: 'text' },
+                { name: 'email', label: 'Email Επισκέπτη', required: true, type: 'email' },
+                { name: 'imerominia', label: 'Ημερομηνία', required: true, type: 'date' },
+                { name: 'ora', label: 'Ώρα', required: true, type: 'time' },
+                { name: 'timi', label: 'Τιμή', required: true, type: 'number', min: 0 },
+                { name: 'idTamia', label: 'ID Ταμία', required: true, pattern: '^TM\\d{3}$', type: 'text' }
+            ];
+        case 'Είδη':
+            return [
+                { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
+                { name: 'katigoria', label: 'Κατηγορία', required: true, type: 'text' },
+                { name: 'perigrafi', label: 'Περιγραφή', required: false, type: 'textarea' }
+            ];
+        case 'Ταμίες':
+            return [
+                { name: 'id', label: 'ID', required: true, pattern: '^TM\\d{3}$', type: 'text' },
+                { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
+                { name: 'eponymo', label: 'Επώνυμο', required: true, type: 'text' },
+                { name: 'tilefono', label: 'Τηλέφωνο', required: true, pattern: '^\\d{10}$', type: 'tel' },
+                { name: 'misthos', label: 'Μισθός', required: true, type: 'number', min: 0 }
+            ];
+        case 'Επισκέπτες':
+            return [
+                { name: 'email', label: 'Email', required: true, type: 'email' },
+                { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
+                { name: 'eponymo', label: 'Επώνυμο', required: true, type: 'text' },
+                { name: 'tilefono', label: 'Τηλέφωνο', required: true, pattern: '^\\d{10}$', type: 'tel' }
+            ];
+        case 'Φροντιστές':
+            return [
+                { name: 'id', label: 'ID', required: true, pattern: '^FR\\d{3}$', type: 'text' },
+                { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
+                { name: 'eponymo', label: 'Επώνυμο', required: true, type: 'text' },
+                { name: 'tilefono', label: 'Τηλέφωνο', required: true, pattern: '^\\d{10}$', type: 'tel' },
+                { name: 'misthos', label: 'Μισθός', required: true, type: 'number', min: 0 }
+            ];
+        case 'Προμηθευτές':
+            return [
+                { name: 'afm', label: 'ΑΦΜ', required: true, pattern: '^\\d{9}$', type: 'text' },
+                { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
+                { name: 'eponymo', label: 'Επώνυμο', required: true, type: 'text' },
+                { name: 'tilefono', label: 'Τηλέφωνο', required: true, pattern: '^\\d{10}$', type: 'tel' },
+                { name: 'dieuthinsi', label: 'Διεύθυνση', required: true, type: 'text' }
+            ];
+        case 'Εκδηλώσεις':
+            return [
+                { name: 'titlos', label: 'Τίτλος', required: true, type: 'text' },
+                { name: 'hmerominia', label: 'Ημερομηνία', required: true, type: 'date' },
+                { name: 'perigrafi', label: 'Περιγραφή', required: false, type: 'textarea' }
+            ];
+        default:
+            return [];
+    }
+}
+
+function createFormField(field, value = '') {
+    const formGroup = document.createElement('div');
+    formGroup.className = 'form-group';
+
+    const label = document.createElement('label');
+    label.textContent = field.label;
+    if (field.required) label.classList.add('required');
+    formGroup.appendChild(label);
+
+    let input;
+    if (field.type === 'textarea') {
+        input = document.createElement('textarea');
+        input.rows = 4;
+    } else {
+        input = document.createElement('input');
+        input.type = field.type;
+        if (field.pattern) input.pattern = field.pattern;
+        if (field.min !== undefined) input.min = field.min;
+        if (field.max !== undefined) input.max = field.max;
+    }
+
+    input.name = field.name;
+    input.value = value;
+    input.required = field.required;
+    
+    input.addEventListener('invalid', (e) => {
+        const errorDiv = formGroup.querySelector('.error-message');
+        if (errorDiv) errorDiv.remove();
+        
+        const error = document.createElement('div');
+        error.className = 'error-message';
+        error.textContent = getValidationMessage(field, input);
+        formGroup.appendChild(error);
+    });
+
+    input.addEventListener('input', () => {
+        const errorDiv = formGroup.querySelector('.error-message');
+        if (errorDiv) errorDiv.remove();
+    });
+
+    formGroup.appendChild(input);
+    return formGroup;
+}
+
+function getValidationMessage(field, input) {
+    if (!input.value) return `Το πεδίο ${field.label} είναι υποχρεωτικό`;
+    if (field.type === 'email' && input.validity.typeMismatch) return 'Μη έγκυρη διεύθυνση email';
+    if (field.type === 'tel' && input.validity.patternMismatch) return 'Το τηλέφωνο πρέπει να έχει 10 ψηφία';
+    if (field.pattern && input.validity.patternMismatch) {
+        switch (field.name) {
+            case 'kodikos': return 'Ο κωδικός πρέπει να ξεκινάει με Z και να ακολουθούν 6 ψηφία';
+            case 'id': return 'Το ID πρέπει να ξεκινάει με FR ή TM και να ακολουθούν 3 ψηφία';
+            case 'arithmos': return 'Ο αριθμός εισιτηρίου πρέπει να ξεκινάει με TK και να ακολουθούν 4 ψηφία';
+            case 'afm': return 'Το ΑΦΜ πρέπει να αποτελείται από 9 ψηφία';
+            default: return 'Μη έγκυρη μορφή';
+        }
+    }
+    return 'Μη έγκυρη τιμή';
+}
 /**
  * Χειρίζεται την υποβολή της φόρμας
  * @param {Event} event - Το event της φόρμας
@@ -396,6 +532,14 @@ function getFormFields(section) {
             { name: 'eponymo', label: 'Επώνυμο', required: true, type: 'text' },
             { name: 'tilefono', label: 'Τηλέφωνο', required: true, pattern: '^\\d{10}$', type: 'tel' },
             { name: 'misthos', label: 'Μισθός', required: true, type: 'number', min: 0 }
+        ],
+        'Εισιτηρία': [
+            { name: 'arithmos', label: 'Αριθμός Εισιτηρίου', required: true, pattern: '^TK\\d{4}$', type: 'text' },
+            { name: 'email', label: 'Email Επισκέπτη', required: true, type: 'email' },
+            { name: 'imerominia', label: 'Ημερομηνία', required: true, type: 'date' },
+            { name: 'ora', label: 'Ώρα', required: true, type: 'time' },
+            { name: 'timi', label: 'Τιμή', required: true, type: 'number', min: 0 },
+            { name: 'idTamia', label: 'ID Ταμία', required: true, pattern: '^TM\\d{3}$', type: 'text' }
         ],
         'Επισκέπτες': [
             { name: 'email', label: 'Email', required: true, type: 'email' },
