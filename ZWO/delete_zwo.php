@@ -1,48 +1,21 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-
-require_once 'db_connection.php';
+require_once '../db_connection.php';
 
 header('Content-Type: application/json; charset=utf-8');
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode([
-        'status' => 'error',
-        'message' => 'Μη έγκυρη μέθοδος αιτήματος'
-    ], JSON_UNESCAPED_UNICODE);
-    exit;
-}
-
-$data = json_decode(file_get_contents('php://input'), true);
-
-if (json_last_error() !== JSON_ERROR_NONE) {
-    http_response_code(400);
-    echo json_encode([
-        'status' => 'error',
-        'message' => 'Μη έγκυρα δεδομένα JSON'
-    ], JSON_UNESCAPED_UNICODE);
-    exit;
-}
-
 
 try {
     $db = getDatabase();
     
-    // Get POST data
+    // Λήψη JSON δεδομένων
     $data = json_decode(file_get_contents('php://input'), true);
     
-    if (!isset($data['Kodikos']) || empty($data['Kodikos'])) {
-        throw new Exception("Δεν καθορίστηκε το ζώο προς διαγραφή");
+    if (!isset($data['Kodikos'])) {
+        throw new Exception("Δεν βρέθηκε ο κωδικός του ζώου");
     }
 
-    // Begin transaction
     $db->beginTransaction();
 
-    // Check for related records in SYMMETEXEI
+    // Έλεγχος εξαρτήσεων στον πίνακα SYMMETEXEI
     $stmt = $db->prepare("SELECT COUNT(*) as count FROM SYMMETEXEI WHERE Kodikos = ?");
     $stmt->bind_param("s", $data['Kodikos']);
     $stmt->execute();
@@ -52,7 +25,7 @@ try {
         throw new Exception("Το ζώο δεν μπορεί να διαγραφεί γιατί συμμετέχει σε εκδηλώσεις");
     }
 
-    // Check for related records in FRONTIZEI
+    // Έλεγχος εξαρτήσεων στον πίνακα FRONTIZEI
     $stmt = $db->prepare("SELECT COUNT(*) as count FROM FRONTIZEI WHERE Kodikos = ?");
     $stmt->bind_param("s", $data['Kodikos']);
     $stmt->execute();
@@ -62,7 +35,7 @@ try {
         throw new Exception("Το ζώο δεν μπορεί να διαγραφεί γιατί έχει φροντιστές");
     }
 
-    // Delete animal
+    // Διαγραφή ζώου
     $stmt = $db->prepare("DELETE FROM ZWO WHERE Kodikos = ?");
     $stmt->bind_param("s", $data['Kodikos']);
     
@@ -70,13 +43,8 @@ try {
         throw new Exception("Σφάλμα κατά τη διαγραφή του ζώου");
     }
 
-    if ($stmt->affected_rows === 0) {
-        throw new Exception("Δεν βρέθηκε το ζώο για διαγραφή");
-    }
-
-    // Commit transaction
     $db->commit();
-
+    
     echo json_encode([
         'status' => 'success',
         'message' => 'Το ζώο διαγράφηκε επιτυχώς'

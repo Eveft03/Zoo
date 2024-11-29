@@ -258,6 +258,7 @@ function shouldShowEllipsis(page, currentPage, totalPages) {
  * @param {string} section - Η τρέχουσα ενότητα
  * @param {Object} row - Τα δεδομένα της γραμμής προς διαγραφή
  */
+
 async function handleDelete(section, row) {
     if (!confirm('Είστε σίγουροι ότι θέλετε να διαγράψετε αυτή την εγγραφή;')) {
         return;
@@ -265,17 +266,26 @@ async function handleDelete(section, row) {
 
     try {
         showLoading();
-        const response = await fetch(`delete_${section.toLowerCase()}.php`, {
+        
+        const response = await fetch('zwo/delete_zwo.php', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(row)
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                Kodikos: row.Kodikos || row.KODIKOS
+            })
         });
 
         const result = await response.json();
-        if (result.status === 'error') throw new Error(result.message);
+        
+        if (result.status === 'error') {
+            throw new Error(result.message);
+        }
 
-        showMessage(result.message, false);
-        loadSection(section);
+        showMessage('Η διαγραφή ολοκληρώθηκε επιτυχώς');
+        await loadSection(section);
     } catch (error) {
         showMessage(error.message, true);
     } finally {
@@ -366,16 +376,53 @@ async function handleFormSubmit(event, section, formType) {
  * @returns {Array} - Λίστα πεδίων της φόρμας
  */
 function getFormFields(section) {
-    if (section === 'Ζώα') {
-        return [
-            { name: 'kodikos', label: 'Κωδικός' },
-            { name: 'onoma', label: 'Όνομα' },
-            { name: 'etos_genesis', label: 'Έτος Γέννησης' },
-            { name: 'onoma_eidous', label: 'Είδος' }
-        ];
-    }
-    // Προσθέστε κι άλλες ενότητες αν χρειάζεται
-    return [];
+    const fields = {
+        'Ζώα': [
+            { name: 'kodikos', label: 'Κωδικός', required: true, pattern: '^Z\\d{6}$', type: 'text' },
+            { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
+            { name: 'etos_genesis', label: 'Έτος Γέννησης', required: true, type: 'number', min: 1900, max: new Date().getFullYear() },
+            { name: 'onoma_eidous', label: 'Είδος', required: true, type: 'select', dataSource: 'get_species.php' }
+        ],
+        'Φροντιστές': [
+            { name: 'id', label: 'ID', required: true, pattern: '^FR\\d{3}$', type: 'text' },
+            { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
+            { name: 'eponymo', label: 'Επώνυμο', required: true, type: 'text' },
+            { name: 'tilefono', label: 'Τηλέφωνο', required: true, pattern: '^\\d{10}$', type: 'tel' },
+            { name: 'misthos', label: 'Μισθός', required: true, type: 'number', min: 0 }
+        ],
+        'Ταμίες': [
+            { name: 'id', label: 'ID', required: true, pattern: '^TM\\d{3}$', type: 'text' },
+            { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
+            { name: 'eponymo', label: 'Επώνυμο', required: true, type: 'text' },
+            { name: 'tilefono', label: 'Τηλέφωνο', required: true, pattern: '^\\d{10}$', type: 'tel' },
+            { name: 'misthos', label: 'Μισθός', required: true, type: 'number', min: 0 }
+        ],
+        'Επισκέπτες': [
+            { name: 'email', label: 'Email', required: true, type: 'email' },
+            { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
+            { name: 'eponymo', label: 'Επώνυμο', required: true, type: 'text' },
+            { name: 'tilefono', label: 'Τηλέφωνο', required: true, pattern: '^\\d{10}$', type: 'tel' }
+        ],
+        'Προμηθευτές': [
+            { name: 'afm', label: 'ΑΦΜ', required: true, pattern: '^\\d{9}$', type: 'text' },
+            { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
+            { name: 'eponymo', label: 'Επώνυμο', required: true, type: 'text' },
+            { name: 'tilefono', label: 'Τηλέφωνο', required: true, pattern: '^\\d{10}$', type: 'tel' },
+            { name: 'dieuthinsi', label: 'Διεύθυνση', required: true, type: 'text' }
+        ],
+        'Είδη': [
+            { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
+            { name: 'katigoria', label: 'Κατηγορία', required: true, type: 'text' },
+            { name: 'perigrafi', label: 'Περιγραφή', required: false, type: 'textarea' }
+        ],
+        'Εκδηλώσεις': [
+            { name: 'titlos', label: 'Τίτλος', required: true, type: 'text' },
+            { name: 'hmerominia', label: 'Ημερομηνία', required: true, type: 'date' },
+            { name: 'perigrafi', label: 'Περιγραφή', required: false, type: 'textarea' }
+        ]
+    };
+    
+    return fields[section] || [];
 }
 
 /**
@@ -390,12 +437,82 @@ function createFormField(field, value = '') {
 
     const label = document.createElement('label');
     label.textContent = field.label;
+    if (field.required) label.classList.add('required');
     formGroup.appendChild(label);
 
-    const input = document.createElement('input');
+    let input;
+    if (field.type === 'textarea') {
+        input = document.createElement('textarea');
+        input.rows = 4;
+    } else if (field.type === 'select') {
+        input = document.createElement('select');
+        // Add loading placeholder
+        const placeholder = document.createElement('option');
+        placeholder.text = 'Φόρτωση...';
+        placeholder.disabled = true;
+        placeholder.selected = true;
+        input.appendChild(placeholder);
+        
+        // Load options from server
+        fetch(field.dataSource)
+            .then(response => response.json())
+            .then(data => {
+                input.innerHTML = ''; // Clear loading placeholder
+                data.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.Onoma;
+                    option.text = item.Onoma;
+                    if (item.Onoma === value) option.selected = true;
+                    input.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading options:', error);
+                input.innerHTML = '<option disabled>Error loading options</option>';
+            });
+    } else {
+        input = document.createElement('input');
+        input.type = field.type;
+        if (field.pattern) input.pattern = field.pattern;
+        if (field.min !== undefined) input.min = field.min;
+        if (field.max !== undefined) input.max = field.max;
+    }
+
     input.name = field.name;
     input.value = value;
-    formGroup.appendChild(input);
+    input.required = field.required;
+    
+    // Add validation feedback
+    input.addEventListener('invalid', (e) => {
+        const errorDiv = formGroup.querySelector('.error-message');
+        if (errorDiv) errorDiv.remove();
+        
+        const error = document.createElement('div');
+        error.className = 'error-message';
+        error.textContent = getValidationMessage(field, input);
+        formGroup.appendChild(error);
+    });
 
+    input.addEventListener('input', () => {
+        const errorDiv = formGroup.querySelector('.error-message');
+        if (errorDiv) errorDiv.remove();
+    });
+
+    formGroup.appendChild(input);
     return formGroup;
+}
+
+function getValidationMessage(field, input) {
+    if (!input.value) return `Το πεδίο ${field.label} είναι υποχρεωτικό`;
+    if (field.type === 'email' && input.validity.typeMismatch) return 'Μη έγκυρη διεύθυνση email';
+    if (field.type === 'tel' && input.validity.patternMismatch) return 'Το τηλέφωνο πρέπει να έχει 10 ψηφία';
+    if (field.pattern && input.validity.patternMismatch) {
+        switch (field.name) {
+            case 'kodikos': return 'Ο κωδικός πρέπει να ξεκινάει με Z και να ακολουθούν 6 ψηφία';
+            case 'id': return 'Το ID πρέπει να ξεκινάει με FR ή TM και να ακολουθούν 3 ψηφία';
+            case 'afm': return 'Το ΑΦΜ πρέπει να αποτελείται από 9 ψηφία';
+            default: return 'Μη έγκυρη μορφή';
+        }
+    }
+    return 'Μη έγκυρη τιμή';
 }

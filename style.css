@@ -324,3 +324,121 @@ footer {
     color: #666;
     font-size: 0.9rem;
 }
+
+/* Form Container */
+.entity-form {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: 2rem auto;
+}
+
+.entity-form h2 {
+    color: #2c3e50;
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+    text-align: center;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 1rem;
+}
+
+/* Form Groups */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 0.8rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+/* Form Buttons */
+.form-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    justify-content: flex-end;
+}
+
+.form-buttons button {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.form-buttons button[type="submit"] {
+    background-color: #3498db;
+    color: white;
+}
+
+.form-buttons button[type="submit"]:hover {
+    background-color: #2980b9;
+}
+
+.form-buttons .cancel-button {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.form-buttons .cancel-button:hover {
+    background-color: #c0392b;
+}
+
+/* Required Field Indicator */
+.required::after {
+    content: "*";
+    color: #e74c3c;
+    margin-left: 4px;
+}
+
+/* Validation Styles */
+.form-group input:invalid {
+    border-color: #e74c3c;
+}
+
+.form-group .error-message {
+    color: #e74c3c;
+    font-size: 0.8rem;
+    margin-top: 0.4rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 480px) {
+    .entity-form {
+        padding: 1.5rem;
+        margin: 1rem;
+    }
+    
+    .form-buttons {
+        flex-direction: column;
+    }
+    
+    .form-buttons button {
+        width: 100%;
+    }
+}
