@@ -5,64 +5,67 @@ header('Content-Type: application/json; charset=utf-8');
 
 try {
     $db = getDatabase();
-    
-    // Validate input
-    if (!isset($_POST['kodikos']) || empty($_POST['kodikos'])) {
+
+    // Λήψη δεδομένων JSON
+    $data = json_decode(file_get_contents('php://input'), true);
+    if (!$data) {
+        throw new Exception("Μη έγκυρα δεδομένα JSON");
+    }
+
+    // Έλεγχος δεδομένων
+    if (!isset($data['kodikos']) || empty($data['kodikos'])) {
         throw new Exception("Ο κωδικός είναι υποχρεωτικός");
     }
-    if (!isset($_POST['onoma']) || empty($_POST['onoma'])) {
+    if (!isset($data['onoma']) || empty($data['onoma'])) {
         throw new Exception("Το όνομα είναι υποχρεωτικό");
     }
-    if (!isset($_POST['etos_genesis']) || empty($_POST['etos_genesis'])) {
+    if (!isset($data['etos_genesis']) || empty($data['etos_genesis'])) {
         throw new Exception("Το έτος γέννησης είναι υποχρεωτικό");
     }
-    if (!isset($_POST['onoma_eidous']) || empty($_POST['onoma_eidous'])) {
+    if (!isset($data['onoma_eidous']) || empty($data['onoma_eidous'])) {
         throw new Exception("Το είδος είναι υποχρεωτικό");
     }
 
-    // Validate year
-    $year = (int)$_POST['etos_genesis'];
+    // Έλεγχος έτους
+    $year = (int)$data['etos_genesis'];
     $current_year = date('Y');
     if ($year < 1900 || $year > $current_year) {
         throw new Exception("Μη έγκυρο έτος γέννησης");
     }
 
-    // Begin transaction
+    // Έναρξη συναλλαγής
     $db->beginTransaction();
 
-    // Check if species exists
+    // Έλεγχος αν υπάρχει το είδος
     $stmt = $db->prepare("SELECT Onoma FROM EIDOS WHERE Onoma = ?");
-    $stmt->bind_param("s", $_POST['onoma_eidous']);
+    $stmt->bind_param("s", $data['onoma_eidous']);
     $stmt->execute();
     if (!$stmt->get_result()->num_rows) {
         throw new Exception("Το είδος δεν υπάρχει");
     }
 
-    // Update animal
+    // Ενημέρωση ζώου
     $stmt = $db->prepare("
         UPDATE ZWO 
-        SET Onoma = ?,
-            Etos_Genesis = ?,
-            Onoma_Eidous = ?
+        SET Onoma = ?, Etos_Genesis = ?, Onoma_Eidous = ? 
         WHERE Kodikos = ?
     ");
-    
     $stmt->bind_param("siss", 
-        $_POST['onoma'],
-        $year,
-        $_POST['onoma_eidous'],
-        $_POST['kodikos']
+        $data['onoma'], 
+        $year, 
+        $data['onoma_eidous'], 
+        $data['kodikos']
     );
-    
+
     if (!$stmt->execute()) {
-        throw new Exception("Σφάλμα κατά την ενημέρωση του ζώου");
+        throw new Exception("Σφάλμα SQL: " . $stmt->error);
     }
 
     if ($stmt->affected_rows === 0) {
         throw new Exception("Δεν βρέθηκε το ζώο για ενημέρωση");
     }
 
-    // Commit transaction
+    // Ολοκλήρωση συναλλαγής
     $db->commit();
 
     echo json_encode([
@@ -74,7 +77,6 @@ try {
     if (isset($db)) {
         $db->rollback();
     }
-    
     http_response_code(400);
     echo json_encode([
         'status' => 'error',

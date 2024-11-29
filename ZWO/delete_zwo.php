@@ -1,7 +1,33 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+
 require_once 'db_connection.php';
 
 header('Content-Type: application/json; charset=utf-8');
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Μη έγκυρη μέθοδος αιτήματος'
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+$data = json_decode(file_get_contents('php://input'), true);
+
+if (json_last_error() !== JSON_ERROR_NONE) {
+    http_response_code(400);
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Μη έγκυρα δεδομένα JSON'
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 
 try {
     $db = getDatabase();

@@ -225,12 +225,12 @@ function createPaginationButton(text, page, section, isActive = false) {
     button.href = '#';
     button.textContent = text;
     if (isActive) button.classList.add('active');
-    
+
     button.onclick = (e) => {
         e.preventDefault();
         loadSection(section, page);
     };
-    
+
     return button;
 }
 
@@ -238,17 +238,17 @@ function createPaginationButton(text, page, section, isActive = false) {
  * Ελέγχει αν πρέπει να εμφανιστεί ο αριθμός σελίδας
  */
 function shouldShowPageNumber(page, currentPage, totalPages) {
-    return page === 1 || 
-           page === totalPages || 
-           (page >= currentPage - 1 && page <= currentPage + 1);
+    return page === 1 ||
+        page === totalPages ||
+        (page >= currentPage - 1 && page <= currentPage + 1);
 }
 
 /**
  * Ελέγχει αν πρέπει να εμφανιστούν αποσιωπητικά
  */
 function shouldShowEllipsis(page, currentPage, totalPages) {
-    return (page === 2 && currentPage > 4) || 
-           (page === totalPages - 1 && currentPage < totalPages - 3);
+    return (page === 2 && currentPage > 4) ||
+        (page === totalPages - 1 && currentPage < totalPages - 3);
 }
 
 // ================ CRUD Operations ================
@@ -336,12 +336,17 @@ async function handleFormSubmit(event, section, formType) {
 
     try {
         const formData = new FormData(event.target);
-        const url = `${formType === 'Προσθήκη' ? 'add' : 'update'}_${section.toLowerCase()}.php`;
-        
+        const url = `${formType === 'Προσθήκη' ? 'zwo/add_zwo.php' : 'zwo/update_zwo.php'}`;
+
         const response = await fetch(url, {
             method: 'POST',
             body: formData
         });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Σφάλμα απόκρισης: ${errorText}`);
+        }
 
         const result = await response.json();
         if (result.status === 'error') throw new Error(result.message);
@@ -353,4 +358,44 @@ async function handleFormSubmit(event, section, formType) {
     } finally {
         hideLoading();
     }
+}
+
+/**
+ * Δημιουργεί πεδία της φόρμας ανάλογα με την ενότητα
+ * @param {string} section - Η τρέχουσα ενότητα
+ * @returns {Array} - Λίστα πεδίων της φόρμας
+ */
+function getFormFields(section) {
+    if (section === 'Ζώα') {
+        return [
+            { name: 'kodikos', label: 'Κωδικός' },
+            { name: 'onoma', label: 'Όνομα' },
+            { name: 'etos_genesis', label: 'Έτος Γέννησης' },
+            { name: 'onoma_eidous', label: 'Είδος' }
+        ];
+    }
+    // Προσθέστε κι άλλες ενότητες αν χρειάζεται
+    return [];
+}
+
+/**
+ * Δημιουργεί ένα πεδίο της φόρμας
+ * @param {Object} field - Το αντικείμενο του πεδίου
+ * @param {string} value - Η αρχική τιμή του πεδίου
+ * @returns {HTMLElement} - Το HTML στοιχείο του πεδίου
+ */
+function createFormField(field, value = '') {
+    const formGroup = document.createElement('div');
+    formGroup.className = 'form-group';
+
+    const label = document.createElement('label');
+    label.textContent = field.label;
+    formGroup.appendChild(label);
+
+    const input = document.createElement('input');
+    input.name = field.name;
+    input.value = value;
+    formGroup.appendChild(input);
+
+    return formGroup;
 }

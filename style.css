@@ -39,7 +39,7 @@ nav {
 nav ul {
     list-style: none;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     flex-wrap: wrap;
     gap: 1rem;
     max-width: 1200px;
@@ -48,7 +48,7 @@ nav ul {
 }
 
 nav ul li {
-    margin: 0;
+    margin: 0 1rem;
 }
 
 nav ul li a {
@@ -116,13 +116,11 @@ table tr:hover {
 
 /* Hide action buttons by default */
 .action-buttons {
-    display: none;
-}
-
-/* Show action buttons on row hover */
-table tr:hover .action-buttons {
-    display: flex;
-    gap: 0.5rem;
+    display: flex; /* Εμφανίζονται πάντα */
+    flex-direction: row; /* Τα κουμπιά είναι σε οριζόντια διάταξη */
+    gap: 1rem; /* Απόσταση μεταξύ των κουμπιών */
+    justify-content: start; /* Προσανατολισμός κουμπιών */
+    align-items: center; /* Κεντράρισμα στο container */
 }
 
 .edit-button,
