@@ -1,43 +1,36 @@
 <?php
-require_once 'db_connection.php';
+require_once '../db_connection.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
 try {
     $db = getDatabase();
     
-    // Validate input
-    if (!isset($_POST['email']) || empty($_POST['email'])) {
-        throw new Exception("Απαιτείται το email του επισκέπτη");
+    $data = json_decode(file_get_contents('php://input'), true);
+    
+    if (!isset($data['Email'])) {
+        throw new Exception("Δεν βρέθηκε το email του επισκέπτη");
     }
 
     $db->beginTransaction();
 
-    // Check for dependencies in EISITIRIO table
+    // Έλεγχος εξαρτήσεων στο EISITIRIO
     $stmt = $db->prepare("SELECT COUNT(*) as count FROM EISITIRIO WHERE Email = ?");
-    $stmt->bind_param("s", $_POST['email']);
+    $stmt->bind_param("s", $data['Email']);
     $stmt->execute();
-    $result = $stmt->get_result();
-    $count = $result->fetch_assoc()['count'];
-    
-    if ($count > 0) {
-        throw new Exception("Δεν μπορεί να γίνει διαγραφή του επισκέπτη καθώς υπάρχουν συνδεδεμένα εισιτήρια");
+    if ($stmt->get_result()->fetch_assoc()['count'] > 0) {
+        throw new Exception("Ο επισκέπτης δεν μπορεί να διαγραφεί γιατί έχει εισιτήρια");
     }
 
-    // Delete visitor
     $stmt = $db->prepare("DELETE FROM EPISKEPTIS WHERE Email = ?");
-    $stmt->bind_param("s", $_POST['email']);
+    $stmt->bind_param("s", $data['Email']);
     
     if (!$stmt->execute()) {
         throw new Exception("Σφάλμα κατά τη διαγραφή του επισκέπτη");
     }
 
-    if ($stmt->affected_rows === 0) {
-        throw new Exception("Ο επισκέπτης δεν βρέθηκε");
-    }
-
     $db->commit();
-
+    
     echo json_encode([
         'status' => 'success',
         'message' => 'Ο επισκέπτης διαγράφηκε επιτυχώς'
@@ -47,7 +40,6 @@ try {
     if (isset($db)) {
         $db->rollback();
     }
-    
     http_response_code(400);
     echo json_encode([
         'status' => 'error',

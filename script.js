@@ -67,12 +67,16 @@ async function loadSection(section, page = 1) {
 
         contentElement.innerHTML = '';
 
+        const tableContainer = document.createElement('div');
+        tableContainer.className = 'table-container';
+        contentElement.appendChild(tableContainer);
+
         // Προσθήκη κουμπιού για νέα εγγραφή
         const addButton = document.createElement('button');
         addButton.className = 'add-button';
         addButton.textContent = `Προσθήκη ${section}`;
         addButton.onclick = () => showForm('Προσθήκη', section);
-        contentElement.appendChild(addButton);
+        tableContainer.appendChild(addButton);
 
         if (data.data && data.data.length > 0) {
             // Εμφάνιση πληροφοριών σελιδοποίησης
@@ -81,21 +85,21 @@ async function loadSection(section, page = 1) {
             const start = (data.pagination.currentPage - 1) * data.pagination.itemsPerPage + 1;
             const end = Math.min(start + data.pagination.itemsPerPage - 1, data.pagination.totalItems);
             infoDiv.textContent = `Εμφάνιση ${start}-${end} από ${data.pagination.totalItems} ${section}`;
-            contentElement.appendChild(infoDiv);
+            tableContainer.appendChild(infoDiv);
 
             // Δημιουργία πίνακα δεδομένων
             const table = createDataTable(data.data, section);
-            contentElement.appendChild(table);
+            tableContainer.appendChild(table);
 
-            // Προσθήκη pagination αν υπάρχουν πολλές σελίδες
+            // Προσθήκη pagination
             if (data.pagination && data.pagination.totalPages > 1) {
                 const pagination = createPagination(data.pagination, section);
-                contentElement.appendChild(pagination);
+                tableContainer.appendChild(pagination);
             }
         } else {
             const noDataMessage = document.createElement('p');
             noDataMessage.textContent = 'Δεν βρέθηκαν δεδομένα';
-            contentElement.appendChild(noDataMessage);
+            tableContainer.appendChild(noDataMessage);
         }
     } catch (error) {
         showMessage(error.message, true);
@@ -134,7 +138,7 @@ function createDataTable(data, section) {
     // Δημιουργία γραμμών δεδομένων
     data.forEach(row => {
         const tr = document.createElement('tr');
-        
+
         // Προσθήκη κελιών δεδομένων
         Object.values(row).forEach(value => {
             const td = document.createElement('td');
@@ -145,21 +149,21 @@ function createDataTable(data, section) {
         // Προσθήκη κουμπιών ενεργειών
         const actionsTd = document.createElement('td');
         actionsTd.className = 'action-buttons';
-        
+
         const editButton = document.createElement('button');
         editButton.className = 'edit-button';
         editButton.textContent = 'Επεξεργασία';
         editButton.onclick = () => showForm('Επεξεργασία', section, row);
-        
+
         const deleteButton = document.createElement('button');
         deleteButton.className = 'delete-button';
         deleteButton.textContent = 'Διαγραφή';
         deleteButton.onclick = () => handleDelete(section, row);
-        
+
         actionsTd.appendChild(editButton);
         actionsTd.appendChild(deleteButton);
         tr.appendChild(actionsTd);
-        
+
         tbody.appendChild(tr);
     });
 
@@ -266,7 +270,7 @@ async function handleDelete(section, row) {
 
     try {
         showLoading();
-        
+
         const paths = {
             'Ζώα': 'zwo/delete_zwo.php',
             'Εισιτήρια': 'eisitirio/delete_eisitirio.php',
@@ -278,6 +282,10 @@ async function handleDelete(section, row) {
             'Εκδηλώσεις': 'ekdilosi/delete_ekdilosi.php'
         };
 
+        // Καταγραφή των δεδομένων που αποστέλλονται
+        console.log('Δεδομένα που αποστέλλονται:', row);
+        console.log('Path που χρησιμοποιείται:', paths[section]);
+
         const response = await fetch(paths[section], {
             method: 'POST',
             headers: {
@@ -287,7 +295,19 @@ async function handleDelete(section, row) {
             body: JSON.stringify(row)
         });
 
-        const result = await response.json();
+        // Ανάγνωση της απόκρισης ως κείμενο για να καταγραφεί
+        const text = await response.text();
+        console.log('Απόκριση από τον server:', text);
+
+        // Προσπάθεια μετατροπής της απόκρισης σε JSON
+        let result;
+        try {
+            result = JSON.parse(text);
+        } catch (error) {
+            console.error('Η απόκριση δεν είναι έγκυρο JSON:', text);
+            throw new Error('Η απόκριση δεν είναι έγκυρο JSON');
+        }
+
         if (result.status === 'error') {
             throw new Error(result.message);
         }
@@ -300,6 +320,7 @@ async function handleDelete(section, row) {
         hideLoading();
     }
 }
+
 
 /**
  * Εμφανίζει τη φόρμα προσθήκης/επεξεργασίας
@@ -346,7 +367,7 @@ function showForm(formType, section, data = null) {
 }
 
 function getFormFields(section) {
-    switch(section) {
+    switch (section) {
         case 'Ζώα':
             return [
                 { name: 'kodikos', label: 'Κωδικός', required: true, pattern: '^Z\\d{6}$', type: 'text' },
@@ -435,11 +456,11 @@ function createFormField(field, value = '') {
     input.name = field.name;
     input.value = value;
     input.required = field.required;
-    
+
     input.addEventListener('invalid', (e) => {
         const errorDiv = formGroup.querySelector('.error-message');
         if (errorDiv) errorDiv.remove();
-        
+
         const error = document.createElement('div');
         error.className = 'error-message';
         error.textContent = getValidationMessage(field, input);
@@ -534,12 +555,16 @@ function getFormFields(section) {
             { name: 'misthos', label: 'Μισθός', required: true, type: 'number', min: 0 }
         ],
         'Εισιτήρια': [
-            { name: 'arithmos', label: 'Αριθμός Εισιτηρίου', required: true, pattern: '^TK\\d{4}$', type: 'text' },
-            { name: 'email', label: 'Email Επισκέπτη', required: true, type: 'email' },
-            { name: 'imerominia', label: 'Ημερομηνία', required: true, type: 'date' },
-            { name: 'ora', label: 'Ώρα', required: true, type: 'time' },
-            { name: 'timi', label: 'Τιμή', required: true, type: 'number', min: 0 },
-            { name: 'idTamia', label: 'ID Ταμία', required: true, pattern: '^TM\\d{3}$', type: 'text' }
+            { name: 'KODIKOS', label: 'Κωδικός', required: true, type: 'text' },
+            { name: 'HMEROMINIA_EKDOSHS', label: 'Ημερομηνία Έκδοσης', required: true, type: 'date' },
+            { name: 'TIMI', label: 'Τιμή', required: true, type: 'number', min: 0 },
+            { name: 'IDTAMIA', label: 'ID Ταμία', required: true, pattern: '^TM\\d{3}$', type: 'text' },
+            { name: 'EMAIL', label: 'Email Επισκέπτη', required: true, type: 'email' },
+            { name: 'KATIGORIA', label: 'Κατηγορία', required: true, type: 'text' },
+            { name: 'ONOMA_TAMIA', label: 'Όνομα Ταμία', required: true, type: 'text' },
+            { name: 'EPONYMO_TAMIA', label: 'Επώνυμο Ταμία', required: true, type: 'text' },
+            { name: 'ONOMA_EPISKEPTH', label: 'Όνομα Επισκέπτη', required: true, type: 'text' },
+            { name: 'EPONYMO_EPISKEPTH', label: 'Επώνυμο Επισκέπτη', required: true, type: 'text' }
         ],
         'Επισκέπτες': [
             { name: 'email', label: 'Email', required: true, type: 'email' },
@@ -565,7 +590,7 @@ function getFormFields(section) {
             { name: 'perigrafi', label: 'Περιγραφή', required: false, type: 'textarea' }
         ]
     };
-    
+
     return fields[section] || [];
 }
 
@@ -596,7 +621,7 @@ function createFormField(field, value = '') {
         placeholder.disabled = true;
         placeholder.selected = true;
         input.appendChild(placeholder);
-        
+
         // Load options from server
         fetch(field.dataSource)
             .then(response => response.json())
@@ -625,12 +650,12 @@ function createFormField(field, value = '') {
     input.name = field.name;
     input.value = value;
     input.required = field.required;
-    
+
     // Add validation feedback
     input.addEventListener('invalid', (e) => {
         const errorDiv = formGroup.querySelector('.error-message');
         if (errorDiv) errorDiv.remove();
-        
+
         const error = document.createElement('div');
         error.className = 'error-message';
         error.textContent = getValidationMessage(field, input);
