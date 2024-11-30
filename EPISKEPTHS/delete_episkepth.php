@@ -15,18 +15,35 @@ try {
     $db->beginTransaction();
 
     // Έλεγχος εξαρτήσεων στο EISITIRIO
-    $stmt = $db->prepare("SELECT COUNT(*) as count FROM EISITIRIO WHERE Email = ?");
+    $stmt = $db->prepare("SELECT DISTINCT e.Kodikos, e.Hmerominia_Ekdoshs 
+                         FROM EISITIRIO e 
+                         LEFT JOIN APAITEI a ON e.Kodikos = a.Kodikos 
+                         WHERE e.Email = ?");
     $stmt->bind_param("s", $data['Email']);
     $stmt->execute();
-    if ($stmt->get_result()->fetch_assoc()['count'] > 0) {
-        throw new Exception("Ο επισκέπτης δεν μπορεί να διαγραφεί γιατί έχει εισιτήρια");
+    $result = $stmt->get_result();
+
+    // Διαγραφή από APAITEI και μετά από EISITIRIO
+    while ($row = $result->fetch_assoc()) {
+        $stmt = $db->prepare("DELETE FROM APAITEI WHERE Kodikos = ? AND Hmerominia_Ekdoshs = ?");
+        $stmt->bind_param("is", $row['Kodikos'], $row['Hmerominia_Ekdoshs']);
+        $stmt->execute();
     }
 
+    $stmt = $db->prepare("DELETE FROM EISITIRIO WHERE Email = ?");
+    $stmt->bind_param("s", $data['Email']);
+    $stmt->execute();
+
+    // Διαγραφή επισκέπτη
     $stmt = $db->prepare("DELETE FROM EPISKEPTIS WHERE Email = ?");
     $stmt->bind_param("s", $data['Email']);
     
     if (!$stmt->execute()) {
         throw new Exception("Σφάλμα κατά τη διαγραφή του επισκέπτη");
+    }
+
+    if ($stmt->affected_rows === 0) {
+        throw new Exception("Δεν βρέθηκε ο επισκέπτης");
     }
 
     $db->commit();

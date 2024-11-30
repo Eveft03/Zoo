@@ -16,17 +16,24 @@ try {
 
     // Έλεγχος εξαρτήσεων στο EISITIRIO
     $stmt = $db->prepare("SELECT COUNT(*) as count FROM EISITIRIO WHERE IDTamia = ?");
-    $stmt->bind_param("s", $data['ID']);
+    $stmt->bind_param("i", $data['ID']);
     $stmt->execute();
-    if ($stmt->get_result()->fetch_assoc()['count'] > 0) {
+    $result = $stmt->get_result()->fetch_assoc();
+    
+    if ($result['count'] > 0) {
         throw new Exception("Ο ταμίας δεν μπορεί να διαγραφεί γιατί έχει εκδώσει εισιτήρια");
     }
 
+    // Διαγραφή ταμία
     $stmt = $db->prepare("DELETE FROM TAMIAS WHERE ID = ?");
-    $stmt->bind_param("s", $data['ID']);
+    $stmt->bind_param("i", $data['ID']);
     
     if (!$stmt->execute()) {
         throw new Exception("Σφάλμα κατά τη διαγραφή του ταμία");
+    }
+
+    if ($stmt->affected_rows === 0) {
+        throw new Exception("Δεν βρέθηκε ταμίας με το συγκεκριμένο ID");
     }
 
     $db->commit();

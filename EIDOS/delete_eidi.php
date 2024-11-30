@@ -6,7 +6,6 @@ header('Content-Type: application/json; charset=utf-8');
 try {
     $db = getDatabase();
     
-    // Λήψη JSON δεδομένων
     $data = json_decode(file_get_contents('php://input'), true);
     
     if (!isset($data['Onoma'])) {
@@ -15,14 +14,22 @@ try {
 
     $db->beginTransaction();
 
-    // Έλεγχος εξαρτήσεων στον πίνακα ZWO
+    // Έλεγχος εξαρτήσεων στο ZWO
     $stmt = $db->prepare("SELECT COUNT(*) as count FROM ZWO WHERE Onoma_Eidous = ?");
     $stmt->bind_param("s", $data['Onoma']);
     $stmt->execute();
-    $result = $stmt->get_result()->fetch_assoc();
     
-    if ($result['count'] > 0) {
+    if ($stmt->get_result()->fetch_assoc()['count'] > 0) {
         throw new Exception("Το είδος δεν μπορεί να διαγραφεί γιατί υπάρχουν ζώα αυτού του είδους");
+    }
+
+    // Έλεγχος εξαρτήσεων στο TREFETAI
+    $stmt = $db->prepare("SELECT COUNT(*) as count FROM TREFETAI WHERE Eidos_onoma = ?");
+    $stmt->bind_param("s", $data['Onoma']);
+    $stmt->execute();
+    
+    if ($stmt->get_result()->fetch_assoc()['count'] > 0) {
+        throw new Exception("Το είδος δεν μπορεί να διαγραφεί γιατί συνδέεται με τροφές");
     }
 
     // Διαγραφή είδους
@@ -31,6 +38,10 @@ try {
     
     if (!$stmt->execute()) {
         throw new Exception("Σφάλμα κατά τη διαγραφή του είδους");
+    }
+
+    if ($stmt->affected_rows === 0) {
+        throw new Exception("Δεν βρέθηκε το είδος");
     }
 
     $db->commit();
@@ -44,7 +55,6 @@ try {
     if (isset($db)) {
         $db->rollback();
     }
-    
     http_response_code(400);
     echo json_encode([
         'status' => 'error',

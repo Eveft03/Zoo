@@ -14,17 +14,25 @@ try {
 
     $db->beginTransaction();
 
-    // Διαγραφή από FRONTIZEI
-    $stmt = $db->prepare("DELETE FROM FRONTIZEI WHERE ID = ?");
-    $stmt->bind_param("s", $data['ID']);
+    // Έλεγχος εξαρτήσεων στο FRONTIZEI
+    $stmt = $db->prepare("SELECT COUNT(*) as count FROM FRONTIZEI WHERE ID = ?");
+    $stmt->bind_param("i", $data['ID']);
     $stmt->execute();
+    $result = $stmt->get_result()->fetch_assoc();
+    
+    if ($result['count'] > 0) {
+        throw new Exception("Ο φροντιστής δεν μπορεί να διαγραφεί γιατί φροντίζει ζώα");
+    }
 
-    // Διαγραφή φροντιστή
     $stmt = $db->prepare("DELETE FROM FRONTISTIS WHERE ID = ?");
-    $stmt->bind_param("s", $data['ID']);
+    $stmt->bind_param("i", $data['ID']);
     
     if (!$stmt->execute()) {
         throw new Exception("Σφάλμα κατά τη διαγραφή του φροντιστή");
+    }
+
+    if ($stmt->affected_rows === 0) {
+        throw new Exception("Δεν βρέθηκε φροντιστής με το συγκεκριμένο ID");
     }
 
     $db->commit();
