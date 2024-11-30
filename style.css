@@ -66,68 +66,77 @@ nav ul li a.active {
     transform: translateY(-2px);
 }
 
-/* Main content area - διόρθωση margin */
+/* Main content area */
 main {
     max-width: 1200px;
     margin: 2rem auto;
     padding: 0 1rem;
     min-height: calc(100vh - 200px);
-    margin-bottom: 4rem; /* Προσθήκη margin-bottom */
+    margin-bottom: 4rem;
+}
+
+/* Table container */
+.table-container {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 20px;
+    overflow: auto;
 }
 
 /* Table styles */
-table {
+#content table {
     width: 100%;
+    min-width: 1200px;
     border-collapse: collapse;
     background: white;
     border-radius: 8px;
-    overflow: hidden;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
     margin-bottom: 2rem;
 }
 
-table th,
-table td {
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-}
-
-table th {
+#content table th {
     background-color: #34495e;
     color: white;
     font-weight: 600;
-    text-transform: uppercase;
     font-size: 0.9rem;
+    text-transform: uppercase;
     letter-spacing: 0.5px;
+    padding: 12px 16px;
+    border-bottom: 2px solid #2c3e50;
+    text-align: right !important;
 }
 
-table tr {
-    border-bottom: 1rem solid transparent; /* Προσθήκη κενού μεταξύ των γραμμών */
+#content table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e9ecef;
+    text-align: right !important;
 }
 
-table tr:nth-child(even) {
+#content table tr:nth-child(even) {
+    background-color: #f9fafb;
+}
+
+#content table tr:hover {
     background-color: #f8f9fa;
 }
 
-table tr:hover {
-    background-color: #f1f4f6;
-}
-
-/* Hide action buttons by default */
+/* Action buttons */
 .action-buttons {
-    display: flex; /* Εμφανίζονται πάντα */
-    flex-direction: row; /* Τα κουμπιά είναι σε οριζόντια διάταξη */
-    gap: 1rem; /* Απόσταση μεταξύ των κουμπιών */
-    justify-content: start; /* Προσανατολισμός κουμπιών */
-    align-items: center; /* Κεντράρισμα στο container */
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-right: 16px !important;
 }
 
 .edit-button,
 .delete-button {
-    padding: 0.3rem 0.6rem;
+    padding: 6px 12px;
+    border: none;
     border-radius: 4px;
+    font-size: 0.9rem;
     cursor: pointer;
+    transition: all 0.2s;
 }
 
 .edit-button {
@@ -140,69 +149,110 @@ table tr:hover {
     color: white;
 }
 
+.edit-button:hover,
+.delete-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
 /* Form styles */
-form {
+.entity-form {
     background: white;
-    padding: 2rem;
+    padding: 2.5rem;
     border-radius: 8px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     max-width: 600px;
-    margin: 0 auto;
+    margin: 2rem auto;
+}
+
+.entity-form h2 {
+    color: #2c3e50;
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+    text-align: center;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 1rem;
 }
 
 .form-group {
     margin-bottom: 1.5rem;
 }
 
-label {
+.form-group label {
     display: block;
     margin-bottom: 0.5rem;
-    font-weight: 600;
     color: #2c3e50;
+    font-weight: 600;
+    font-size: 0.9rem;
 }
 
-input[type="text"],
-input[type="number"],
-select {
+.form-group input,
+.form-group select {
     width: 100%;
     padding: 0.8rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
     font-size: 1rem;
+    transition: border-color 0.2s ease;
 }
 
-input[type="text"]:focus,
-input[type="number"]:focus,
-select:focus {
+.form-group input:focus,
+.form-group select:focus {
     border-color: #3498db;
     outline: none;
     box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
 }
 
-button {
-    background-color: #3498db;
-    color: white;
+/* Form validation */
+.required::after {
+    content: "*";
+    color: #e74c3c;
+    margin-left: 4px;
+}
+
+.form-group input:invalid {
+    border-color: #e74c3c;
+}
+
+.form-group .error-message {
+    color: #e74c3c;
+    font-size: 0.8rem;
+    margin-top: 0.4rem;
+}
+
+/* Form buttons */
+.form-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    justify-content: flex-end;
+}
+
+.form-buttons button {
     padding: 0.8rem 1.5rem;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
+    font-weight: 600;
     cursor: pointer;
-    font-size: 1rem;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
-button:hover {
+.form-buttons button[type="submit"] {
+    background-color: #3498db;
+    color: white;
+}
+
+.form-buttons .cancel-button {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.form-buttons button[type="submit"]:hover {
     background-color: #2980b9;
-    transform: translateY(-2px);
 }
 
-/* Loading spinner */
-.loading-spinner {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100px;
-    font-size: 1.2rem;
-    color: #3498db;
+.form-buttons .cancel-button:hover {
+    background-color: #c0392b;
 }
 
 /* Messages */
@@ -224,7 +274,17 @@ button:hover {
     color: white;
 }
 
-/* Pagination styles */
+/* Loading spinner */
+.loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
+    font-size: 1.2rem;
+    color: #3498db;
+}
+
+/* Pagination */
 .pagination {
     display: flex;
     justify-content: center;
@@ -260,9 +320,27 @@ button:hover {
     color: white;
 }
 
+.pagination-info {
+    text-align: right;
+    color: #666;
+    margin: 10px 0;
+    font-size: 0.9rem;
+}
+
 .pagination-dots {
     padding: 0 0.5rem;
     color: #666;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 1rem 0;
+    background-color: #2c3e50;
+    color: white;
+    width: 100%;
+    position: relative;
+    margin-top: 2rem;
 }
 
 /* Animations */
@@ -307,127 +385,6 @@ button:hover {
     }
 }
 
-/* Footer */
-footer {
-    text-align: center;
-    padding: 1rem 0;
-    background-color: #2c3e50;
-    color: white;
-    width: 100%;
-    position: relative; /* Αλλαγή από fixed σε relative */
-    margin-top: 2rem;  /* Προσθήκη margin */
-}
-
-.pagination-info {
-    text-align: right;
-    margin-bottom: 1rem;
-    color: #666;
-    font-size: 0.9rem;
-}
-
-/* Form Container */
-.entity-form {
-    background: white;
-    padding: 2.5rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    max-width: 600px;
-    margin: 2rem auto;
-}
-
-.entity-form h2 {
-    color: #2c3e50;
-    margin-bottom: 2rem;
-    font-size: 1.8rem;
-    text-align: center;
-    border-bottom: 2px solid #eee;
-    padding-bottom: 1rem;
-}
-
-/* Form Groups */
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #2c3e50;
-    font-weight: 600;
-    font-size: 0.9rem;
-}
-
-.form-group input,
-.form-group select {
-    width: 100%;
-    padding: 0.8rem;
-    border: 2px solid #e2e8f0;
-    border-radius: 6px;
-    font-size: 1rem;
-    transition: border-color 0.2s ease;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-    border-color: #3498db;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-}
-
-/* Form Buttons */
-.form-buttons {
-    display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
-    justify-content: flex-end;
-}
-
-.form-buttons button {
-    padding: 0.8rem 1.5rem;
-    border: none;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.form-buttons button[type="submit"] {
-    background-color: #3498db;
-    color: white;
-}
-
-.form-buttons button[type="submit"]:hover {
-    background-color: #2980b9;
-}
-
-.form-buttons .cancel-button {
-    background-color: #e74c3c;
-    color: white;
-}
-
-.form-buttons .cancel-button:hover {
-    background-color: #c0392b;
-}
-
-/* Required Field Indicator */
-.required::after {
-    content: "*";
-    color: #e74c3c;
-    margin-left: 4px;
-}
-
-/* Validation Styles */
-.form-group input:invalid {
-    border-color: #e74c3c;
-}
-
-.form-group .error-message {
-    color: #e74c3c;
-    font-size: 0.8rem;
-    margin-top: 0.4rem;
-}
-
-/* Responsive Adjustments */
 @media (max-width: 480px) {
     .entity-form {
         padding: 1.5rem;
@@ -442,91 +399,8 @@ footer {
         width: 100%;
     }
 }
-/* Table container */
-.table-container {
-    width: 95%;
-    max-width: 1400px;
-    margin: 0 auto;
-    overflow-x: auto;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-}
-
-/* Table base */
-#content table {
-    width: 100%;
-    min-width: 1200px;
-    border-collapse: collapse;
-}
-
-/* Headers */
-#content table th {
-    text-align: right !important;
-    padding: 12px 16px;
-    background-color: #34495e;
-    color: white;
-    font-weight: 600;
-    font-size: 0.9rem;
-    border-bottom: 2px solid #2c3e50;
-}
-
-/* Table cells */
-#content table td {
-    text-align: right !important;
-    padding: 12px 16px;
-    border-bottom: 1px solid #e9ecef;
-}
-
-/* Row hover */
-#content table tr:hover {
-    background-color: #f8f9fa;
-}
-
-/* Action buttons */
-.action-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    padding-right: 16px !important;
-}
-
-.edit-button,
-.delete-button {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.edit-button {
-    background-color: #3498db;
-    color: white;
-}
-
-.delete-button {
-    background-color: #e74c3c;
-    color: white;
-}
-
-.edit-button:hover,
-.delete-button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-/* Pagination info */
-.pagination-info {
+/* Στυλ ονόματος ζώου */
+#content table td:nth-child(2) {
+    white-space: nowrap;
     text-align: right;
-    color: #666;
-    margin: 10px 0;
-    font-size: 0.9rem;
-}
-
-/* Even rows background */
-#content table tr:nth-child(even) {
-    background-color: #f9fafb;
 }

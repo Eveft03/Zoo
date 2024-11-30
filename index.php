@@ -64,21 +64,27 @@ try {
             $result = $stmt->get_result();
             break;
 
-        case 'Εισιτήρια':
-            $totalRows = $db->query("SELECT COUNT(*) as count FROM EISITIRIO")->fetch_assoc()['count'];
+            case 'Εισιτήρια':
+                $totalRows = $db->query("SELECT COUNT(*) as count FROM EISITIRIO")->fetch_assoc()['count'];
+                
+                $stmt = $db->prepare("
+                    SELECT e.*, t.*, ep.*
+                    FROM EISITIRIO e
+                    LEFT JOIN TAMIAS t ON e.IDTamia = t.ID
+                    LEFT JOIN EPISKEPTIS ep ON e.Email = ep.Email
+                    LIMIT ? OFFSET ?
+                ");
+                $stmt->bind_param("ii", $limit, $offset);
+                $stmt->execute();
+                $result = $stmt->get_result();
             
-            $stmt = $db->prepare("
-                SELECT e.*, t.Onoma as Ονομα_Ταμία, t.Eponymo as Επώνυμο_Ταμία,
-                       ep.Onoma as Ονομα_Επισκέπτη, ep.Eponymo as Επώνυμο_Επισκέπτη
-                FROM EISITIRIO e 
-                LEFT JOIN TAMIAS t ON e.IDTamia = t.ID 
-                LEFT JOIN EPISKEPTIS ep ON e.Email = ep.Email 
-                LIMIT ? OFFSET ?
-            ");
-            $stmt->bind_param("ii", $limit, $offset);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            break;
+                // Debug
+                if (!$result) {
+                    error_log("Query error: " . $db->error);
+                } else {
+                    error_log("Rows returned: " . $result->num_rows);
+                }
+                break;
 
         case 'Ταμίες':
             $totalRows = $db->query("SELECT COUNT(*) as count FROM TAMIAS")->fetch_assoc()['count'];
