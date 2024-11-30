@@ -421,25 +421,23 @@ footer {
 
 /* Table container adjustments */
 .table-container {
-    width: 95%;
-    max-width: 1400px;
-    margin: 0 auto;
-    overflow-x: auto;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-    padding: 20px;
     position: relative;
     width: 100%;
     overflow-x: auto;
+    padding-right: 130px; /* Προσθέστε padding για να υπάρχει χώρος για την απόλυτη τοποθέτηση */
 }
 
 /* Pagination info adjustment */
 .pagination-info {
-    text-align: right;
+    position: absolute;
+    right: -50px; /* Μετακινούμε ακόμα πιο δεξιά */
+    top: -10px; /* Διατηρούμε την κατακόρυφη θέση */
     color: #666;
-    margin: 10px 0;
     font-size: 0.9rem;
+    white-space: nowrap;
+    padding: 10px;
+    background: #fff;
+    z-index: 10;
 }
 
 /* Table header and cell alignment */
