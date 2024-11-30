@@ -14,16 +14,26 @@ try {
 
     $db->beginTransaction();
 
-    // Έλεγχος εξαρτήσεων στο FRONTIZEI
-    $stmt = $db->prepare("SELECT COUNT(*) as count FROM FRONTIZEI WHERE ID = ?");
+    // Έλεγχος και λήψη λίστας ζώων που φροντίζει
+    $stmt = $db->prepare("
+        SELECT z.Onoma, z.Kodikos 
+        FROM ZWO z 
+        JOIN FRONTIZEI f ON z.Kodikos = f.Kodikos 
+        WHERE f.ID = ?
+    ");
     $stmt->bind_param("i", $data['ID']);
     $stmt->execute();
-    $result = $stmt->get_result()->fetch_assoc();
+    $result = $stmt->get_result();
     
-    if ($result['count'] > 0) {
-        throw new Exception("Ο φροντιστής δεν μπορεί να διαγραφεί γιατί φροντίζει ζώα");
+    if ($result->num_rows > 0) {
+        $zwa = array();
+        while ($row = $result->fetch_assoc()) {
+            $zwa[] = $row['Onoma'];
+        }
+        throw new Exception("Ο φροντιστής δεν μπορεί να διαγραφεί γιατί φροντίζει τα ζώα: " . implode(", ", $zwa));
     }
 
+    // Διαγραφή φροντιστή
     $stmt = $db->prepare("DELETE FROM FRONTISTIS WHERE ID = ?");
     $stmt->bind_param("i", $data['ID']);
     
@@ -32,7 +42,7 @@ try {
     }
 
     if ($stmt->affected_rows === 0) {
-        throw new Exception("Δεν βρέθηκε φροντιστής με το συγκεκριμένο ID");
+        throw new Exception("Δεν βρέθηκε ο φροντιστής");
     }
 
     $db->commit();

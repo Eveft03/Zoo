@@ -14,23 +14,28 @@ try {
 
     $db->beginTransaction();
 
-    // Έλεγχος εξαρτήσεων στο ZWO
-    $stmt = $db->prepare("SELECT COUNT(*) as count FROM ZWO WHERE Onoma_Eidous = ?");
+    // Έλεγχος και λήψη λίστας ζώων του είδους
+    $stmt = $db->prepare("
+        SELECT Onoma
+        FROM ZWO 
+        WHERE Onoma_Eidous = ?
+    ");
     $stmt->bind_param("s", $data['Onoma']);
     $stmt->execute();
+    $result = $stmt->get_result();
     
-    if ($stmt->get_result()->fetch_assoc()['count'] > 0) {
-        throw new Exception("Το είδος δεν μπορεί να διαγραφεί γιατί υπάρχουν ζώα αυτού του είδους");
+    if ($result->num_rows > 0) {
+        $zwa = array();
+        while ($row = $result->fetch_assoc()) {
+            $zwa[] = $row['Onoma'];
+        }
+        throw new Exception("Το είδος δεν μπορεί να διαγραφεί γιατί υπάρχουν ζώα αυτού του είδους: " . implode(", ", $zwa));
     }
 
-    // Έλεγχος εξαρτήσεων στο TREFETAI
-    $stmt = $db->prepare("SELECT COUNT(*) as count FROM TREFETAI WHERE Eidos_onoma = ?");
+    // Έλεγχος και διαγραφή από TREFETAI
+    $stmt = $db->prepare("DELETE FROM TREFETAI WHERE Eidos_onoma = ?");
     $stmt->bind_param("s", $data['Onoma']);
     $stmt->execute();
-    
-    if ($stmt->get_result()->fetch_assoc()['count'] > 0) {
-        throw new Exception("Το είδος δεν μπορεί να διαγραφεί γιατί συνδέεται με τροφές");
-    }
 
     // Διαγραφή είδους
     $stmt = $db->prepare("DELETE FROM EIDOS WHERE Onoma = ?");

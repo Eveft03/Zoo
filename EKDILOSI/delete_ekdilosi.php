@@ -9,10 +9,29 @@ try {
     $data = json_decode(file_get_contents('php://input'), true);
     
     if (!isset($data['Titlos']) || !isset($data['Hmerominia'])) {
-        throw new Exception("Δεν βρέθηκε ο τίτλος ή η ημερομηνία της εκδήλωσης");
+        throw new Exception("Δεν βρέθηκαν τα στοιχεία της εκδήλωσης");
     }
 
     $db->beginTransaction();
+
+    // Έλεγχος και λήψη συνδεδεμένων εισιτηρίων
+    $stmt = $db->prepare("
+        SELECT e.Kodikos
+        FROM EISITIRIO e
+        JOIN APAITEI a ON e.Kodikos = a.Kodikos AND e.Hmerominia_Ekdoshs = a.Hmerominia_Ekdoshs
+        WHERE a.Titlos = ? AND a.Hmerominia = ?
+    ");
+    $stmt->bind_param("ss", $data['Titlos'], $data['Hmerominia']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows > 0) {
+        $eisitiria = array();
+        while ($row = $result->fetch_assoc()) {
+            $eisitiria[] = $row['Kodikos'];
+        }
+        throw new Exception("Η εκδήλωση δεν μπορεί να διαγραφεί γιατί υπάρχουν συνδεδεμένα εισιτήρια: " . implode(", ", $eisitiria));
+    }
 
     // Διαγραφή από SYMMETEXEI
     $stmt = $db->prepare("DELETE FROM SYMMETEXEI WHERE Titlos = ? AND Hmerominia = ?");
@@ -25,6 +44,10 @@ try {
     
     if (!$stmt->execute()) {
         throw new Exception("Σφάλμα κατά τη διαγραφή της εκδήλωσης");
+    }
+
+    if ($stmt->affected_rows === 0) {
+        throw new Exception("Δεν βρέθηκε η εκδήλωση");
     }
 
     $db->commit();

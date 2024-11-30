@@ -14,16 +14,34 @@ try {
 
     $db->beginTransaction();
 
-    // Έλεγχος εξαρτήσεων στο TROFIMO
-    $stmt = $db->prepare("UPDATE TROFIMO SET AFM_PROMITHEUTI = NULL WHERE AFM_PROMITHEUTI = ?");
+    // Αντί να ελέγξουμε απλά αν υπάρχουν τρόφιμα, παίρνουμε τη λίστα τους
+    $stmt = $db->prepare("
+        SELECT t.Onoma, t.Kodikos, t.Timi_kg, t.Posothta 
+        FROM TROFIMO t 
+        WHERE t.AFM_PROMITHEUTI = ?
+    ");
     $stmt->bind_param("s", $data['AFM']);
     $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows > 0) {
+        $trofima = array();
+        while ($row = $result->fetch_assoc()) {
+            $trofima[] = $row['Onoma'];
+        }
+        throw new Exception("Ο προμηθευτής δεν μπορεί να διαγραφεί γιατί είναι υπεύθυνος για τα τρόφιμα: " . implode(", ", $trofima));
+    }
 
+    // Διαγραφή προμηθευτή
     $stmt = $db->prepare("DELETE FROM PROMITHEUTIS WHERE AFM = ?");
     $stmt->bind_param("s", $data['AFM']);
     
     if (!$stmt->execute()) {
         throw new Exception("Σφάλμα κατά τη διαγραφή του προμηθευτή");
+    }
+
+    if ($stmt->affected_rows === 0) {
+        throw new Exception("Δεν βρέθηκε ο προμηθευτής");
     }
 
     $db->commit();
