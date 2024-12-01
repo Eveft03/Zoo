@@ -166,5 +166,12 @@ try {
     ], JSON_UNESCAPED_UNICODE);
 }
 
+// Στο index.php, προσθήκη htmlspecialchars για output
+foreach ($response['data'] as &$row) {
+    array_walk($row, function(&$value) {
+        $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+    });
+}
+
 ?>
 

@@ -20,10 +20,10 @@ try {
         throw new Exception("Το είδος είναι υποχρεωτικό");
     }
 
-    // Validate animal code format (Z followed by 6 digits)
-    if (!preg_match('/^Z\d{6}$/', $_POST['kodikos'])) {
-        throw new Exception("Ο κωδικός πρέπει να ξεκινάει με 'Z' και να ακολουθούν 6 ψηφία");
-    }
+    // Αλλαγή pattern validation
+if (!preg_match('/^Z\d{6}$/', $_POST['kodikos'])) {
+    throw new Exception("Ο κωδικός πρέπει να έχει τη μορφή 'Z' ακολουθούμενο από 6 ψηφία");
+}
 
     // Validate year
     $year = (int)$_POST['etos_genesis'];

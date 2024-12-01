@@ -15,7 +15,7 @@ try {
     }
 
     // Validate ID format (FR followed by 3 digits)
-    if (!preg_match('/^FR\d{3}$/', $_POST[$field])) {
+    if (!preg_match('/^FR\d{3}$/', $_POST['id'])) {
         throw new Exception("Το ID πρέπει να έχει τη μορφή 'FR' ακολουθούμενο από 3 ψηφία");
     }
 
