@@ -1,90 +1,78 @@
 <?php
 require_once 'db_connection.php';
-
 header('Content-Type: application/json; charset=utf-8');
 
 try {
     $db = getDatabase();
     
-    // Βασικοί έλεγχοι
-    if (!isset($_POST['titlos'], $_POST['hmerominia'], $_POST['ora'], $_POST['xwros'])) {
-        throw new Exception("Λείπουν απαραίτητα πεδία");
-    }
-    if (!isset($_POST['old_titlos'], $_POST['old_hmerominia'])) {
-        throw new Exception("Λείπουν στοιχεία παλιάς εκδήλωσης");
+    if (!isset($_POST['titlos'], $_POST['old_hmerominia'])) {
+        throw new Exception("Απαιτούνται τα στοιχεία της εκδήλωσης");
     }
 
-    // Έλεγχος ημέρας
-    $date = new DateTime($_POST['hmerominia']);
-    $dayOfWeek = $date->format('N');
-    if (!in_array($dayOfWeek, [1, 3, 5])) {
-        throw new Exception("Οι εκδηλώσεις επιτρέπονται μόνο Δευτέρα, Τετάρτη και Παρασκευή");
+    $updates = [];
+    $types = "";
+    $values = [];
+
+    if (isset($_POST['hmerominia']) && !empty($_POST['hmerominia'])) {
+        $date = new DateTime($_POST['hmerominia']);
+        $dayOfWeek = $date->format('N');
+        if (!in_array($dayOfWeek, [1, 3, 5])) {
+            throw new Exception("Οι εκδηλώσεις επιτρέπονται μόνο Δευτέρα, Τετάρτη και Παρασκευή");
+        }
+        
+        $stmt = $db->prepare("SELECT COUNT(*) as count FROM EKDILOSI WHERE Hmerominia = ? AND Hmerominia != ?");
+        $stmt->bind_param("ss", $_POST['hmerominia'], $_POST['old_hmerominia']);
+        $stmt->execute();
+        if ($stmt->get_result()->fetch_assoc()['count'] >= 2) {
+            throw new Exception("Έχει συμπληρωθεί ο μέγιστος αριθμός εκδηλώσεων για την επιλεγμένη ημερομηνία");
+        }
+        
+        $updates[] = "Hmerominia = ?";
+        $types .= "s";
+        $values[] = $_POST['hmerominia'];
+    }
+
+    if (isset($_POST['ora']) && !empty($_POST['ora'])) {
+        if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $_POST['ora'])) {
+            throw new Exception("Μη έγκυρη μορφή ώρας");
+        }
+        $updates[] = "Ora = ?";
+        $types .= "s";
+        $values[] = $_POST['ora'];
+    }
+
+    if (isset($_POST['xwros']) && !empty($_POST['xwros'])) {
+        $updates[] = "Xwros = ?";
+        $types .= "s";
+        $values[] = htmlspecialchars($_POST['xwros']);
+    }
+
+    if (empty($updates)) {
+        throw new Exception("Δεν παρέχονται δεδομένα για ενημέρωση");
     }
 
     $db->beginTransaction();
 
-    // Έλεγχος διαθεσιμότητας ημερομηνίας
-    if ($_POST['hmerominia'] !== $_POST['old_hmerominia']) {
-        $stmt = $db->prepare("
-            SELECT COUNT(*) as count 
-            FROM EKDILOSI 
-            WHERE Hmerominia = ? AND Hmerominia != ?
-        ");
-        $stmt->bind_param("ss", $_POST['hmerominia'], $_POST['old_hmerominia']);
-        $stmt->execute();
-        if ($stmt->get_result()->fetch_assoc()['count'] >= 2) {
-            throw new Exception("Υπάρχουν ήδη 2 εκδηλώσεις την επιλεγμένη ημερομηνία");
-        }
-    }
+    $sql = "UPDATE EKDILOSI SET " . implode(", ", $updates) . " WHERE Titlos = ? AND Hmerominia = ?";
+    $types .= "ss";
+    $values[] = $_POST['titlos'];
+    $values[] = $_POST['old_hmerominia'];
 
-    // Ενημέρωση εκδήλωσης
-    $stmt = $db->prepare("
-        UPDATE EKDILOSI 
-        SET Titlos = ?, Hmerominia = ?, Ora = ?, Xwros = ?
-        WHERE Titlos = ? AND Hmerominia = ?
-    ");
-    
-    $stmt->bind_param("ssssss", 
-        $_POST['titlos'],
-        $_POST['hmerominia'],
-        $_POST['ora'],
-        $_POST['xwros'],
-        $_POST['old_titlos'],
-        $_POST['old_hmerominia']
-    );
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param($types, ...$values);
     
     if (!$stmt->execute()) {
         throw new Exception("Σφάλμα κατά την ενημέρωση της εκδήλωσης");
     }
 
-    // Ενημέρωση σχετικών εγγραφών
-    if ($_POST['titlos'] !== $_POST['old_titlos'] || $_POST['hmerominia'] !== $_POST['old_hmerominia']) {
-        // Ενημέρωση SYMMETEXEI
-        $stmt = $db->prepare("
-            UPDATE SYMMETEXEI 
-            SET Titlos = ?, Hmerominia = ?
-            WHERE Titlos = ? AND Hmerominia = ?
-        ");
-        $stmt->bind_param("ssss", 
-            $_POST['titlos'], 
-            $_POST['hmerominia'], 
-            $_POST['old_titlos'], 
-            $_POST['old_hmerominia']
-        );
+    // Update related records in SYMMETEXEI and APAITEI if the date changed
+    if (isset($_POST['hmerominia']) && $_POST['hmerominia'] !== $_POST['old_hmerominia']) {
+        $stmt = $db->prepare("UPDATE SYMMETEXEI SET Hmerominia = ? WHERE Titlos = ? AND Hmerominia = ?");
+        $stmt->bind_param("sss", $_POST['hmerominia'], $_POST['titlos'], $_POST['old_hmerominia']);
         $stmt->execute();
 
-        // Ενημέρωση APAITEI
-        $stmt = $db->prepare("
-            UPDATE APAITEI 
-            SET Titlos = ?, Hmerominia = ?
-            WHERE Titlos = ? AND Hmerominia = ?
-        ");
-        $stmt->bind_param("ssss", 
-            $_POST['titlos'], 
-            $_POST['hmerominia'], 
-            $_POST['old_titlos'], 
-            $_POST['old_hmerominia']
-        );
+        $stmt = $db->prepare("UPDATE APAITEI SET Hmerominia = ? WHERE Titlos = ? AND Hmerominia = ?");
+        $stmt->bind_param("sss", $_POST['hmerominia'], $_POST['titlos'], $_POST['old_hmerominia']);
         $stmt->execute();
     }
 
@@ -95,6 +83,5 @@ try {
     if (isset($db)) $db->rollback();
     http_response_code(400);
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
-} finally {
-    if (isset($db)) $db->close();
 }
+?>

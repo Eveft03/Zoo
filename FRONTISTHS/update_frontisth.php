@@ -1,14 +1,16 @@
 <?php
-// update_caretaker.php
 require_once 'db_connection.php';
-
 header('Content-Type: application/json; charset=utf-8');
 
 try {
     $db = getDatabase();
     
-    if (!isset($_POST['id']) || empty($_POST['id'])) {
+    if (!isset($_POST['id'])) {
         throw new Exception("Απαιτείται το ID του φροντιστή");
+    }
+
+    if (!preg_match('/^FR\d{3}$/', $_POST['id'])) {
+        throw new Exception("Το ID πρέπει να έχει τη μορφή 'FR' ακολουθούμενο από 3 ψηφία");
     }
 
     $updates = [];
@@ -18,13 +20,13 @@ try {
     if (isset($_POST['onoma']) && !empty($_POST['onoma'])) {
         $updates[] = "Onoma = ?";
         $types .= "s";
-        $values[] = $_POST['onoma'];
+        $values[] = htmlspecialchars($_POST['onoma']);
     }
 
     if (isset($_POST['eponymo']) && !empty($_POST['eponymo'])) {
         $updates[] = "Eponymo = ?";
         $types .= "s";
-        $values[] = $_POST['eponymo'];
+        $values[] = htmlspecialchars($_POST['eponymo']);
     }
 
     if (isset($_POST['tilefono']) && !empty($_POST['tilefono'])) {
@@ -45,30 +47,28 @@ try {
         $values[] = $_POST['misthos'];
     }
 
-    $db->beginTransaction();
-
-    // Update caretaker info if there are any changes
-    if (!empty($updates)) {
-        $sql = "UPDATE FRONTISTIS SET " . implode(", ", $updates) . " WHERE ID = ?";
-        $types .= "s";
-        $values[] = $_POST['id'];
-        
-        $stmt = $db->prepare($sql);
-        $stmt->bind_param($types, ...$values);
-        
-        if (!$stmt->execute()) {
-            throw new Exception("Σφάλμα κατά την ενημέρωση του φροντιστή");
-        }
+    if (empty($updates)) {
+        throw new Exception("Δεν παρέχονται δεδομένα για ενημέρωση");
     }
 
-    // Update animal assignments if provided
+    $db->beginTransaction();
+
+    $sql = "UPDATE FRONTISTIS SET " . implode(", ", $updates) . " WHERE ID = ?";
+    $types .= "s";
+    $values[] = $_POST['id'];
+    
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param($types, ...$values);
+    
+    if (!$stmt->execute()) {
+        throw new Exception("Σφάλμα κατά την ενημέρωση του φροντιστή");
+    }
+
     if (isset($_POST['zwa'])) {
-        // First remove all current assignments
         $stmt = $db->prepare("DELETE FROM FRONTIZEI WHERE ID = ?");
         $stmt->bind_param("s", $_POST['id']);
         $stmt->execute();
 
-        // Then add new assignments
         if (is_array($_POST['zwa']) && !empty($_POST['zwa'])) {
             $stmt = $db->prepare("INSERT INTO FRONTIZEI (ID, Kodikos) VALUES (?, ?)");
             foreach ($_POST['zwa'] as $kodikos) {
@@ -81,21 +81,11 @@ try {
     }
 
     $db->commit();
-
-    echo json_encode([
-        'status' => 'success',
-        'message' => 'Ο φροντιστής ενημερώθηκε επιτυχώς'
-    ], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['status' => 'success', 'message' => 'Ο φροντιστής ενημερώθηκε επιτυχώς']);
 
 } catch (Exception $e) {
-    if (isset($db)) {
-        $db->rollback();
-    }
-    
+    if (isset($db)) $db->rollback();
     http_response_code(400);
-    echo json_encode([
-        'status' => 'error',
-        'message' => $e->getMessage()
-    ], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }
 ?>
