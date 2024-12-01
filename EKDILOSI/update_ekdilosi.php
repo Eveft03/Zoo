@@ -6,73 +6,60 @@ header('Content-Type: application/json; charset=utf-8');
 try {
     $db = getDatabase();
     
-    // Validate input
-    if (!isset($_POST['titlos']) || empty($_POST['titlos'])) {
-        throw new Exception("Ο τίτλος είναι υποχρεωτικός");
+    // Βασικοί έλεγχοι
+    if (!isset($_POST['titlos'], $_POST['hmerominia'], $_POST['ora'], $_POST['xwros'])) {
+        throw new Exception("Λείπουν απαραίτητα πεδία");
     }
-    if (!isset($_POST['hmerominia']) || empty($_POST['hmerominia'])) {
-        throw new Exception("Η ημερομηνία είναι υποχρεωτική");
-    }
-    if (!isset($_POST['old_titlos']) || empty($_POST['old_titlos'])) {
-        throw new Exception("Δεν βρέθηκε ο αρχικός τίτλος της εκδήλωσης");
-    }
-    if (!isset($_POST['old_hmerominia']) || empty($_POST['old_hmerominia'])) {
-        throw new Exception("Δεν βρέθηκε η αρχική ημερομηνία της εκδήλωσης");
+    if (!isset($_POST['old_titlos'], $_POST['old_hmerominia'])) {
+        throw new Exception("Λείπουν στοιχεία παλιάς εκδήλωσης");
     }
 
-    // Validate date format
-    $date = date('Y-m-d', strtotime($_POST['hmerominia']));
-    $old_date = date('Y-m-d', strtotime($_POST['old_hmerominia']));
-    if ($date === false || $old_date === false) {
-        throw new Exception("Μη έγκυρη μορφή ημερομηνίας");
+    // Έλεγχος ημέρας
+    $date = new DateTime($_POST['hmerominia']);
+    $dayOfWeek = $date->format('N');
+    if (!in_array($dayOfWeek, [1, 3, 5])) {
+        throw new Exception("Οι εκδηλώσεις επιτρέπονται μόνο Δευτέρα, Τετάρτη και Παρασκευή");
     }
 
-    // Begin transaction
     $db->beginTransaction();
 
-    // Check if the new title/date combination already exists (except for the current event)
-    if ($_POST['titlos'] !== $_POST['old_titlos'] || $date !== $old_date) {
+    // Έλεγχος διαθεσιμότητας ημερομηνίας
+    if ($_POST['hmerominia'] !== $_POST['old_hmerominia']) {
         $stmt = $db->prepare("
-            SELECT Titlos 
+            SELECT COUNT(*) as count 
             FROM EKDILOSI 
-            WHERE Titlos = ? AND Hmerominia = ? 
-            AND (Titlos != ? OR Hmerominia != ?)
+            WHERE Hmerominia = ? AND Hmerominia != ?
         ");
-        $stmt->bind_param("ssss", $_POST['titlos'], $date, $_POST['old_titlos'], $old_date);
+        $stmt->bind_param("ss", $_POST['hmerominia'], $_POST['old_hmerominia']);
         $stmt->execute();
-        if ($stmt->get_result()->num_rows) {
-            throw new Exception("Υπάρχει ήδη εκδήλωση με αυτόν τον τίτλο για αυτή την ημερομηνία");
+        if ($stmt->get_result()->fetch_assoc()['count'] >= 2) {
+            throw new Exception("Υπάρχουν ήδη 2 εκδηλώσεις την επιλεγμένη ημερομηνία");
         }
     }
 
-    // Update event
+    // Ενημέρωση εκδήλωσης
     $stmt = $db->prepare("
         UPDATE EKDILOSI 
-        SET Titlos = ?,
-            Hmerominia = ?,
-            Perigrafi = ?
+        SET Titlos = ?, Hmerominia = ?, Ora = ?, Xwros = ?
         WHERE Titlos = ? AND Hmerominia = ?
     ");
     
-    $perigrafi = $_POST['perigrafi'] ?? null;
-    $stmt->bind_param("sssss", 
+    $stmt->bind_param("ssssss", 
         $_POST['titlos'],
-        $date,
-        $perigrafi,
+        $_POST['hmerominia'],
+        $_POST['ora'],
+        $_POST['xwros'],
         $_POST['old_titlos'],
-        $old_date
+        $_POST['old_hmerominia']
     );
     
     if (!$stmt->execute()) {
         throw new Exception("Σφάλμα κατά την ενημέρωση της εκδήλωσης");
     }
 
-    if ($stmt->affected_rows === 0) {
-        throw new Exception("Δεν βρέθηκε η εκδήλωση για ενημέρωση");
-    }
-
-    // Update related records in SYMMETEXEI if title or date changed
-    if ($_POST['titlos'] !== $_POST['old_titlos'] || $date !== $old_date) {
+    // Ενημέρωση σχετικών εγγραφών
+    if ($_POST['titlos'] !== $_POST['old_titlos'] || $_POST['hmerominia'] !== $_POST['old_hmerominia']) {
+        // Ενημέρωση SYMMETEXEI
         $stmt = $db->prepare("
             UPDATE SYMMETEXEI 
             SET Titlos = ?, Hmerominia = ?
@@ -80,47 +67,34 @@ try {
         ");
         $stmt->bind_param("ssss", 
             $_POST['titlos'], 
-            $date, 
+            $_POST['hmerominia'], 
             $_POST['old_titlos'], 
-            $old_date
+            $_POST['old_hmerominia']
+        );
+        $stmt->execute();
+
+        // Ενημέρωση APAITEI
+        $stmt = $db->prepare("
+            UPDATE APAITEI 
+            SET Titlos = ?, Hmerominia = ?
+            WHERE Titlos = ? AND Hmerominia = ?
+        ");
+        $stmt->bind_param("ssss", 
+            $_POST['titlos'], 
+            $_POST['hmerominia'], 
+            $_POST['old_titlos'], 
+            $_POST['old_hmerominia']
         );
         $stmt->execute();
     }
 
-    // Update participating animals if provided
-    if (isset($_POST['zwa']) && is_array($_POST['zwa'])) {
-        // First delete all existing associations
-        $stmt = $db->prepare("DELETE FROM SYMMETEXEI WHERE Titlos = ? AND Hmerominia = ?");
-        $stmt->bind_param("ss", $_POST['titlos'], $date);
-        $stmt->execute();
-
-        // Then insert new associations
-        $stmt = $db->prepare("INSERT INTO SYMMETEXEI (Kodikos, Titlos, Hmerominia) VALUES (?, ?, ?)");
-        foreach ($_POST['zwa'] as $kodikos) {
-            $stmt->bind_param("sss", $kodikos, $_POST['titlos'], $date);
-            if (!$stmt->execute()) {
-                throw new Exception("Σφάλμα κατά την ενημέρωση των συμμετεχόντων ζώων");
-            }
-        }
-    }
-
-    // Commit transaction
     $db->commit();
-
-    echo json_encode([
-        'status' => 'success',
-        'message' => 'Η εκδήλωση ενημερώθηκε επιτυχώς'
-    ], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['status' => 'success', 'message' => 'Η εκδήλωση ενημερώθηκε επιτυχώς']);
 
 } catch (Exception $e) {
-    if (isset($db)) {
-        $db->rollback();
-    }
-    
+    if (isset($db)) $db->rollback();
     http_response_code(400);
-    echo json_encode([
-        'status' => 'error',
-        'message' => $e->getMessage()
-    ], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+} finally {
+    if (isset($db)) $db->close();
 }
-?>

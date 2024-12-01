@@ -1,75 +1,59 @@
-// update_eisitirio.php
 <?php
 require_once 'db_connection.php';
 header('Content-Type: application/json; charset=utf-8');
 
 try {
     $db = getDatabase();
-    $data = json_decode(file_get_contents('php://input'), true);
 
-    if (!isset($data['arithmos'])) {
-        throw new Exception("Απαιτείται ο αριθμός του εισιτηρίου");
+    if (!isset($_POST['kodikos'], $_POST['hmerominia_ekdoshs'])) {
+        throw new Exception("Απαιτούνται τα βασικά στοιχεία του εισιτηρίου");
+    }
+
+    $db->beginTransaction();
+
+    // Έλεγχος ημερομηνίας (όχι Κυριακή)
+    if (isset($_POST['hmerominia_ekdoshs'])) {
+        $date = new DateTime($_POST['hmerominia_ekdoshs']);
+        if ($date->format('w') == 0) {
+            throw new Exception("Δεν επιτρέπεται η έκδοση εισιτηρίων την Κυριακή");
+        }
+    }
+
+    // Έλεγχος κατηγορίας και εκδηλώσεων
+    if (isset($_POST['katigoria']) && $_POST['katigoria'] === 'Με εκδήλωση') {
+        $stmt = $db->prepare("SELECT COUNT(*) as count FROM EKDILOSI WHERE Hmerominia = ?");
+        $stmt->bind_param("s", $_POST['hmerominia_ekdoshs']);
+        $stmt->execute();
+        if ($stmt->get_result()->fetch_assoc()['count'] === 0) {
+            throw new Exception("Δεν υπάρχουν εκδηλώσεις για την επιλεγμένη ημερομηνία");
+        }
     }
 
     $updates = [];
     $types = "";
     $values = [];
 
-    if (isset($data['email'])) {
-        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            throw new Exception("Μη έγκυρη διεύθυνση email");
+    // Δυναμική κατασκευή του query update
+    foreach (['timi', 'idTamia', 'email', 'katigoria'] as $field) {
+        if (isset($_POST[$field]) && !empty($_POST[$field])) {
+            $updates[] = "$field = ?";
+            $types .= $field === 'timi' ? 'd' : 's';
+            $values[] = $_POST[$field];
         }
-        $updates[] = "Email = ?";
-        $types .= "s";
-        $values[] = $data['email'];
     }
-
-    if (isset($data['imerominia'])) {
-        $updates[] = "Imerominia = ?";
-        $types .= "s";
-        $values[] = $data['imerominia'];
-    }
-
-    if (isset($data['ora'])) {
-        if (!preg_match('/^([01][0-9]|2[0-3]):([0-5][0-9])$/', $data['ora'])) {
-            throw new Exception("Μη έγκυρη ώρα");
-        }
-        $updates[] = "Ora = ?";
-        $types .= "s";
-        $values[] = $data['ora'];
-    }
-
-    if (isset($data['timi'])) {
-        if (!is_numeric($data['timi']) || $data['timi'] <= 0) {
-            throw new Exception("Μη έγκυρη τιμή");
-        }
-        $updates[] = "Timi = ?";
-        $types .= "d";
-        $values[] = $data['timi'];
-    }
-
-    if (isset($data['idTamia'])) {
-        $updates[] = "IDTamia = ?";
-        $types .= "s";
-        $values[] = $data['idTamia'];
-    }
-
-    $db->beginTransaction();
 
     if (!empty($updates)) {
-        $sql = "UPDATE EISITIRIO SET " . implode(", ", $updates) . " WHERE Arithmos = ?";
-        $types .= "s";
-        $values[] = $data['arithmos'];
-        
+        $sql = "UPDATE EISITIRIO SET " . implode(", ", $updates) . 
+               " WHERE Kodikos = ? AND Hmerominia_Ekdoshs = ?";
+        $types .= "si";
+        $values[] = $_POST['kodikos'];
+        $values[] = $_POST['hmerominia_ekdoshs'];
+
         $stmt = $db->prepare($sql);
         $stmt->bind_param($types, ...$values);
         
         if (!$stmt->execute()) {
             throw new Exception("Σφάλμα κατά την ενημέρωση του εισιτηρίου");
-        }
-
-        if ($stmt->affected_rows === 0) {
-            throw new Exception("Το εισιτήριο δεν βρέθηκε");
         }
     }
 
@@ -80,5 +64,6 @@ try {
     if (isset($db)) $db->rollback();
     http_response_code(400);
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+} finally {
+    if (isset($db)) $db->close();
 }
-?>

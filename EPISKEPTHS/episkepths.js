@@ -1,10 +1,36 @@
-// episkeptis/episkeptis-operations.js
-
 const episkeptisFields = [
-    { name: 'email', label: 'Email', required: true, type: 'email' },
-    { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
-    { name: 'eponymo', label: 'Επώνυμο', required: true, type: 'text' },
-    { name: 'tilefono', label: 'Τηλέφωνο', required: true, pattern: '^\\d{10}$', type: 'tel' }
+    { 
+        name: 'email', 
+        label: 'Email *', 
+        required: true, 
+        type: 'email',
+        pattern: '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}',
+        title: 'Εισάγετε έγκυρη διεύθυνση email'
+    },
+    { 
+        name: 'onoma', 
+        label: 'Όνομα *', 
+        required: true, 
+        type: 'text',
+        minLength: 2,
+        maxLength: 50
+    },
+    { 
+        name: 'eponymo', 
+        label: 'Επώνυμο *', 
+        required: true, 
+        type: 'text',
+        minLength: 2,
+        maxLength: 50
+    },
+    { 
+        name: 'tilefono', 
+        label: 'Τηλέφωνο *', 
+        required: true, 
+        pattern: '^\\d{10}$', 
+        type: 'tel',
+        title: 'Εισάγετε 10ψήφιο αριθμό τηλεφώνου'
+    }
 ];
 
 function createEpiskeptisForm(formType, data = null) {
@@ -15,6 +41,12 @@ function createEpiskeptisForm(formType, data = null) {
     const title = document.createElement('h2');
     title.textContent = `${formType} Επισκέπτη`;
     form.appendChild(title);
+
+    // Προσθήκη υπόμνησης για υποχρεωτικά πεδία
+    const required = document.createElement('p');
+    required.className = 'required-fields-note';
+    required.textContent = '* Υποχρεωτικά πεδία';
+    form.appendChild(required);
 
     episkeptisFields.forEach(field => {
         const formGroup = createFormField(field, data?.[field.name]);
@@ -33,7 +65,11 @@ function createEpiskeptisForm(formType, data = null) {
     cancelButton.type = 'button';
     cancelButton.textContent = 'Ακύρωση';
     cancelButton.className = 'cancel-button';
-    cancelButton.onclick = () => loadSection('Επισκέπτες');
+    cancelButton.onclick = () => {
+        if (confirm('Είστε σίγουροι ότι θέλετε να ακυρώσετε την καταχώρηση;')) {
+            loadSection('Επισκέπτες');
+        }
+    };
     buttonsDiv.appendChild(cancelButton);
 
     form.appendChild(buttonsDiv);

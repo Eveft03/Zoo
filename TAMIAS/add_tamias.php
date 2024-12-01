@@ -3,13 +3,9 @@ require_once 'db_connection.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-ini_set('display_errors', 0);
-ini_set('log_errors', 1);
-error_reporting(E_ALL);
-
 try {
     $db = getDatabase();
-
+    
     // Έλεγχος απαιτούμενων πεδίων
     $required_fields = ['id', 'onoma', 'eponymo', 'tilefono', 'misthos'];
     foreach ($required_fields as $field) {
@@ -18,29 +14,29 @@ try {
         }
     }
 
-    // Έλεγχος ID για θετικούς ακέραιους αριθμούς
-    if (!filter_var($_POST['id'], FILTER_VALIDATE_INT, ["options" => ["min_range" => 1]])) {
-        throw new Exception("Το ID πρέπει να είναι θετικός ακέραιος αριθμός.");
+    // Έλεγχος ID (TM ακολουθούμενο από 3 ψηφία)
+    if (!preg_match('/^TM\d{3}$/', $_POST['id'])) {
+        throw new Exception("Το ID πρέπει να είναι της μορφής TM ακολουθούμενο από 3 ψηφία");
     }
 
-    // Έλεγχος τηλεφώνου (ακριβώς 10 ψηφία)
+    // Έλεγχος τηλεφώνου
     if (!preg_match('/^\d{10}$/', $_POST['tilefono'])) {
-        throw new Exception("Το τηλέφωνο πρέπει να περιέχει μόνο 10 ψηφία.");
+        throw new Exception("Το τηλέφωνο πρέπει να περιέχει ακριβώς 10 ψηφία");
     }
 
-    // Έλεγχος μισθού για μη αρνητικούς αριθμούς
-    if (!filter_var($_POST['misthos'], FILTER_VALIDATE_FLOAT) || $_POST['misthos'] < 0) {
-        throw new Exception("Μη έγκυρος μισθός.");
+    // Έλεγχος μισθού
+    if (!is_numeric($_POST['misthos']) || $_POST['misthos'] < 0) {
+        throw new Exception("Ο μισθός πρέπει να είναι θετικός αριθμός");
     }
 
     $db->beginTransaction();
 
-    // Έλεγχος αν το ID υπάρχει ήδη
+    // Έλεγχος για διπλότυπο ID
     $stmt = $db->prepare("SELECT ID FROM TAMIAS WHERE ID = ?");
-    $stmt->bind_param("i", $_POST['id']);
+    $stmt->bind_param("s", $_POST['id']);
     $stmt->execute();
     if ($stmt->get_result()->num_rows > 0) {
-        throw new Exception("Το ID ταμία υπάρχει ήδη.");
+        throw new Exception("Το ID ταμία υπάρχει ήδη");
     }
 
     // Εισαγωγή ταμία
@@ -48,36 +44,36 @@ try {
         INSERT INTO TAMIAS (ID, Onoma, Eponymo, Tilefono, Misthos)
         VALUES (?, ?, ?, ?, ?)
     ");
-    $stmt->bind_param("isssd", 
+    $stmt->bind_param("ssssd", 
         $_POST['id'], 
-        $_POST['onoma'], 
-        $_POST['eponymo'], 
+        htmlspecialchars($_POST['onoma']), 
+        htmlspecialchars($_POST['eponymo']), 
         $_POST['tilefono'], 
         $_POST['misthos']
     );
 
     if (!$stmt->execute()) {
-        throw new Exception("Σφάλμα κατά την εισαγωγή του ταμία.");
+        throw new Exception("Σφάλμα κατά την εισαγωγή του ταμία");
     }
 
     $db->commit();
 
     echo json_encode([
         'status' => 'success',
-        'message' => 'Ο ταμίας καταχωρήθηκε επιτυχώς.'
+        'message' => 'Ο ταμίας καταχωρήθηκε επιτυχώς'
     ], JSON_UNESCAPED_UNICODE);
 
 } catch (Exception $e) {
     if (isset($db)) {
         $db->rollback();
     }
-
-    error_log("Error: " . $e->getMessage());
     http_response_code(400);
     echo json_encode([
         'status' => 'error',
         'message' => $e->getMessage()
     ], JSON_UNESCAPED_UNICODE);
+} finally {
+    if (isset($db)) {
+        $db->close();
+    }
 }
-?>
-

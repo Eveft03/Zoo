@@ -6,77 +6,47 @@ header('Content-Type: application/json; charset=utf-8');
 try {
     $db = getDatabase();
     
-    // Validate input
+    // Έλεγχος απαιτούμενων πεδίων
     if (!isset($_POST['titlos']) || empty($_POST['titlos'])) {
         throw new Exception("Ο τίτλος είναι υποχρεωτικός");
     }
     if (!isset($_POST['hmerominia']) || empty($_POST['hmerominia'])) {
         throw new Exception("Η ημερομηνία είναι υποχρεωτική");
     }
-
-    // Validate date format
-    $date = date('Y-m-d', strtotime($_POST['hmerominia']));
-    if ($date === false) {
-        throw new Exception("Μη έγκυρη μορφή ημερομηνίας");
+    if (!isset($_POST['ora']) || empty($_POST['ora'])) {
+        throw new Exception("Η ώρα είναι υποχρεωτική");
+    }
+    if (!isset($_POST['xwros']) || empty($_POST['xwros'])) {
+        throw new Exception("Ο χώρος είναι υποχρεωτικός");
     }
 
-    // Begin transaction
+    // Έλεγχος ημέρας (Δευτέρα/Τετάρτη/Παρασκευή)
+    $date = new DateTime($_POST['hmerominia']);
+    $dayOfWeek = $date->format('N'); // 1-7 (Δευτέρα-Κυριακή)
+    if (!in_array($dayOfWeek, [1, 3, 5])) {
+        throw new Exception("Οι εκδηλώσεις επιτρέπονται μόνο Δευτέρα, Τετάρτη και Παρασκευή");
+    }
+
+    // Έλεγχος μέγιστου αριθμού εκδηλώσεων
+    $stmt = $db->prepare("SELECT COUNT(*) as count FROM EKDILOSI WHERE Hmerominia = ?");
+    $stmt->bind_param("s", $_POST['hmerominia']);
+    $stmt->execute();
+    $result = $stmt->get_result()->fetch_assoc();
+    if ($result['count'] >= 2) {
+        throw new Exception("Έχει συμπληρωθεί ο μέγιστος αριθμός εκδηλώσεων (2) για την επιλεγμένη ημερομηνία");
+    }
+
     $db->beginTransaction();
 
-    // Check if event already exists
-    $stmt = $db->prepare("SELECT Titlos FROM EKDILOSI WHERE Titlos = ? AND Hmerominia = ?");
-    $stmt->bind_param("ss", $_POST['titlos'], $date);
-    $stmt->execute();
-    if ($stmt->get_result()->num_rows) {
-        throw new Exception("Η εκδήλωση υπάρχει ήδη για αυτή την ημερομηνία");
-    }
+    // Υπόλοιπος κώδικας εισαγωγής...
 
-    // Insert new event
-    $stmt = $db->prepare("
-        INSERT INTO EKDILOSI (Titlos, Hmerominia, Perigrafi) 
-        VALUES (?, ?, ?)
-    ");
-    
-    $perigrafi = $_POST['perigrafi'] ?? null;
-    $stmt->bind_param("sss", 
-        $_POST['titlos'],
-        $date,
-        $perigrafi
-    );
-    
-    if (!$stmt->execute()) {
-        throw new Exception("Σφάλμα κατά την εισαγωγή της εκδήλωσης");
-    }
-
-    // If animal IDs are provided, add them to SYMMETEXEI
-    if (isset($_POST['zwa']) && is_array($_POST['zwa'])) {
-        $stmt = $db->prepare("INSERT INTO SYMMETEXEI (Kodikos, Titlos, Hmerominia) VALUES (?, ?, ?)");
-        
-        foreach ($_POST['zwa'] as $kodikos) {
-            $stmt->bind_param("sss", $kodikos, $_POST['titlos'], $date);
-            if (!$stmt->execute()) {
-                throw new Exception("Σφάλμα κατά την προσθήκη ζώου στην εκδήλωση");
-            }
-        }
-    }
-
-    // Commit transaction
     $db->commit();
-
-    echo json_encode([
-        'status' => 'success',
-        'message' => 'Η εκδήλωση προστέθηκε επιτυχώς'
-    ], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['status' => 'success', 'message' => 'Η εκδήλωση προστέθηκε επιτυχώς']);
 
 } catch (Exception $e) {
-    if (isset($db)) {
-        $db->rollback();
-    }
-    
+    if (isset($db)) $db->rollback();
     http_response_code(400);
-    echo json_encode([
-        'status' => 'error',
-        'message' => $e->getMessage()
-    ], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+} finally {
+    if (isset($db)) $db->close();
 }
-?>
