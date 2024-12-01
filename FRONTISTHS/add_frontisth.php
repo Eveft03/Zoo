@@ -1,5 +1,4 @@
 <?php
-// add_caretaker.php
 require_once 'db_connection.php';
 
 header('Content-Type: application/json; charset=utf-8');
@@ -15,8 +14,8 @@ try {
         }
     }
 
-    // Validate ID format (e.g., "FR001")
-    if (!preg_match('/^FR\d{3}$/', $_POST['id'])) {
+    // Validate ID format (FR followed by 3 digits)
+    if (!preg_match('/^FR\d{3}$/', $_POST[$field])) {
         throw new Exception("Το ID πρέπει να έχει τη μορφή 'FR' ακολουθούμενο από 3 ψηφία");
     }
 
@@ -40,7 +39,7 @@ try {
         throw new Exception("Το ID φροντιστή υπάρχει ήδη");
     }
 
-    // Insert caretaker
+    // Insert caretaker with prepared statement
     $stmt = $db->prepare("
         INSERT INTO FRONTISTIS (ID, Onoma, Eponymo, Tilefono, Misthos) 
         VALUES (?, ?, ?, ?, ?)
@@ -48,8 +47,8 @@ try {
     
     $stmt->bind_param("ssssd", 
         $_POST['id'],
-        $_POST['onoma'],
-        $_POST['eponymo'],
+        htmlspecialchars($_POST['onoma']),
+        htmlspecialchars($_POST['eponymo']),
         $_POST['tilefono'],
         $_POST['misthos']
     );
@@ -62,6 +61,14 @@ try {
     if (isset($_POST['zwa']) && is_array($_POST['zwa'])) {
         $stmt = $db->prepare("INSERT INTO FRONTIZEI (ID, Kodikos) VALUES (?, ?)");
         foreach ($_POST['zwa'] as $kodikos) {
+            // Validate that animal exists
+            $checkStmt = $db->prepare("SELECT Kodikos FROM ZWO WHERE Kodikos = ?");
+            $checkStmt->bind_param("s", $kodikos);
+            $checkStmt->execute();
+            if ($checkStmt->get_result()->num_rows === 0) {
+                throw new Exception("Το ζώο με κωδικό $kodikos δεν υπάρχει");
+            }
+            
             $stmt->bind_param("ss", $_POST['id'], $kodikos);
             if (!$stmt->execute()) {
                 throw new Exception("Σφάλμα κατά την ανάθεση ζώου");
