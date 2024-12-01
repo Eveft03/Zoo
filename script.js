@@ -422,10 +422,10 @@ function getFormFields(section) {
             { name: 'misthos', label: 'Μισθός', required: true, type: 'number', min: 0 }
         ],
         'Ταμίες': [
-            { name: 'id', label: 'ID', required: true, pattern: '^TM\\d{3}$', type: 'text' },
+            { name: 'id', label: 'ID', required: true, type: 'number', min: 1 },
             { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
             { name: 'eponymo', label: 'Επώνυμο', required: true, type: 'text' },
-            { name: 'tilefono', label: 'Τηλέφωνο', required: true, pattern: '^\\d{10}$', type: 'tel' },
+            { name: 'tilefono', label: 'Τηλέφωνο', required: true, type: 'tel', pattern: '^\\d{10}$' },
             { name: 'misthos', label: 'Μισθός', required: true, type: 'number', min: 0 }
         ],
         'Εισιτήρια': [
@@ -483,79 +483,97 @@ function createFormField(field, value = '') {
     if (field.required) label.classList.add('required');
     formGroup.appendChild(label);
 
-    let input;
-    if (field.type === 'textarea') {
-        input = document.createElement('textarea');
-        input.rows = 4;
-    } else if (field.type === 'select') {
-        input = document.createElement('select');
-        // Add loading placeholder
-        const placeholder = document.createElement('option');
-        placeholder.text = 'Φόρτωση...';
-        placeholder.disabled = true;
-        placeholder.selected = true;
-        input.appendChild(placeholder);
-
-        // Load options from server
-        fetch(field.dataSource)
-            .then(response => response.json())
-            .then(data => {
-                input.innerHTML = ''; // Clear loading placeholder
-                data.forEach(item => {
-                    const option = document.createElement('option');
-                    option.value = item.Onoma;
-                    option.text = item.Onoma;
-                    if (item.Onoma === value) option.selected = true;
-                    input.appendChild(option);
-                });
-            })
-            .catch(error => {
-                console.error('Error loading options:', error);
-                input.innerHTML = '<option disabled>Error loading options</option>';
-            });
-    } else {
-        input = document.createElement('input');
-        input.type = field.type;
-        if (field.pattern) input.pattern = field.pattern;
-        if (field.min !== undefined) input.min = field.min;
-        if (field.max !== undefined) input.max = field.max;
-    }
-
+    const input = document.createElement('input');
+    input.type = field.type; // Χρησιμοποιούμε το σωστό τύπο
     input.name = field.name;
     input.value = value;
     input.required = field.required;
 
-    // Add validation feedback
-    input.addEventListener('invalid', (e) => {
-        const errorDiv = formGroup.querySelector('.error-message');
-        if (errorDiv) errorDiv.remove();
+    // Αφαίρεση του pattern ή validator για το πεδίο ID
+    if (field.name === 'id') {
+        input.type = 'number'; // Ορίζουμε το type ως αριθμητικό
+        input.min = 1; // Ελάχιστη τιμή για θετικούς αριθμούς
+    }
 
-        const error = document.createElement('div');
-        error.className = 'error-message';
-        error.textContent = getValidationMessage(field, input);
-        formGroup.appendChild(error);
-    });
+    // Validator για άλλα πεδία (όχι το ID)
+    if (field.validator && field.name !== 'id') {
+        input.addEventListener('input', (e) => {
+            const error = field.validator(e.target.value);
+            const errorDiv = formGroup.querySelector('.error-message');
+            if (errorDiv) errorDiv.remove();
 
-    input.addEventListener('input', () => {
-        const errorDiv = formGroup.querySelector('.error-message');
-        if (errorDiv) errorDiv.remove();
-    });
+            if (error) {
+                const newErrorDiv = document.createElement('div');
+                newErrorDiv.className = 'error-message';
+                newErrorDiv.textContent = error;
+                formGroup.appendChild(newErrorDiv);
+                input.setCustomValidity(error);
+            } else {
+                input.setCustomValidity('');
+            }
+        });
+    }
 
     formGroup.appendChild(input);
     return formGroup;
 }
 
+
 function getValidationMessage(field, input) {
-    if (!input.value) return `Το πεδίο ${field.label} είναι υποχρεωτικό`;
-    if (field.type === 'email' && input.validity.typeMismatch) return 'Μη έγκυρη διεύθυνση email';
-    if (field.type === 'tel' && input.validity.patternMismatch) return 'Το τηλέφωνο πρέπει να έχει 10 ψηφία';
-    if (field.pattern && input.validity.patternMismatch) {
-        switch (field.name) {
-            case 'kodikos': return 'Ο κωδικός πρέπει να ξεκινάει με Z και να ακολουθούν 6 ψηφία';
-            case 'id': return 'Το ID πρέπει να ξεκινάει με FR ή TM και να ακολουθούν 3 ψηφία';
-            case 'afm': return 'Το ΑΦΜ πρέπει να αποτελείται από 9 ψηφία';
-            default: return 'Μη έγκυρη μορφή';
+    // Γενικά μηνύματα σφάλματος
+    const messages = {
+        required: `Το πεδίο ${field.label} είναι υποχρεωτικό`,
+        email: 'Μη έγκυρη διεύθυνση email',
+        tel: 'Το τηλέφωνο πρέπει να έχει 10 ψηφία',
+        number: 'Πρέπει να είναι αριθμός',
+        rangeUnderflow: `Η τιμή πρέπει να είναι μεγαλύτερη από ${field.min}`,
+        rangeOverflow: `Η τιμή πρέπει να είναι μικρότερη από ${field.max}`,
+        patternMismatch: {
+            kodikos: 'Ο κωδικός πρέπει να ξεκινάει με Z και να ακολουθούν 6 ψηφία',
+            id: 'Το ID πρέπει να είναι θετικός αριθμός',
+            afm: 'Το ΑΦΜ πρέπει να αποτελείται από 9 ψηφία',
+            default: 'Μη έγκυρη μορφή'
+        }
+    };
+
+    // Υποχρεωτικό πεδίο
+    if (!input.value) return messages.required;
+
+    // Μη έγκυρη email διεύθυνση
+    if (field.type === 'email' && input.validity.typeMismatch) return messages.email;
+
+
+    // Έλεγχος τηλεφώνου
+    if (field.name === 'tilefono') {
+        input.type = 'tel';
+        input.pattern = '\\d{10}'; // Επιτρέπει ακριβώς 10 αριθμούς
+        input.title = 'Το τηλέφωνο πρέπει να περιέχει μόνο 10 ψηφία.';
+        
+        // Αποτροπή εισαγωγής μη αριθμητικών χαρακτήρων
+        input.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\D/g, ''); // Καθαρισμός μη αριθμητικών χαρακτήρων
+        });
+    }
+    
+    
+    // Έλεγχοι αριθμών
+    if (field.type === 'number') {
+        if (input.validity.typeMismatch) return messages.number;
+        if (input.validity.rangeUnderflow) {
+            return field.name === 'misthos' 
+                ? 'Ο μισθός πρέπει να είναι θετικός αριθμός' 
+                : messages.rangeUnderflow;
+        }
+        if (input.validity.rangeOverflow) {
+            return messages.rangeOverflow;
         }
     }
+
+    // Έλεγχος regex
+    if (field.pattern && input.validity.patternMismatch) {
+        return messages.patternMismatch[field.name] || messages.patternMismatch.default;
+    }
+
+    // Γενικό μήνυμα για μη έγκυρη τιμή
     return 'Μη έγκυρη τιμή';
 }
