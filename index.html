@@ -1,10 +1,11 @@
-
+<!DOCTYPE html>
 <html lang="el">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ζωολογικός Κήπος - Διαχείριση</title>
+    <title>Διαχείριση Ζωολογικού Κήπου</title>
     <link rel="stylesheet" href="style.css">
+    <script type="module" src="script.js"></script>
 </head>
 <body>
     <header>
@@ -20,33 +21,20 @@
             <li><a href="#" onclick="loadSection('Ταμίες')">Ταμίες</a></li>
             <li><a href="#" onclick="loadSection('Επισκέπτες')">Επισκέπτες</a></li>
             <li><a href="#" onclick="loadSection('Φροντιστές')">Φροντιστές</a></li>
-            <li><a href="#" onclick="loadSection('Προμηθευτές')">Προμηθευτές</a></li>
         </ul>
     </nav>
 
-    <main role="main">
-        <!-- Loading spinner -->
+    <main>
         <div id="loading" class="loading-spinner" style="display: none;">
             <div class="spinner"></div>
             <p>Φόρτωση...</p>
         </div>
 
-        <!-- Main content area -->
-        <div id="content">
-            <!-- Dynamic content will be loaded here -->
-        </div>
-
-        <!-- Form container for add/edit operations -->
-        <div id="formContainer" style="display: none;">
-            <!-- Forms will be dynamically inserted here -->
-        </div>
+        <div id="content"></div>
     </main>
 
     <footer>
         <p>Ζωολογικός Κήπος © 2024</p>
     </footer>
-
-    <!-- Scripts -->
-    <script src="script.js"></script>
 </body>
 </html>
