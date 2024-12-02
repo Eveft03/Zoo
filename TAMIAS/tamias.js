@@ -3,11 +3,34 @@ import { createFormField } from '../ValidationFunctions.js';
 import { loadSection, showMessage, showLoading, hideLoading } from '../script.js';
 
 const tamiasFields = [
-    { name: 'id', label: 'ID', required: true, pattern: '^TM\\d{3}$', type: 'text' },
-    { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
-    { name: 'eponymo', label: 'Επώνυμο', required: true, type: 'text' },
-    { name: 'tilefono', label: 'Τηλέφωνο', required: true, pattern: '^\\d{10}$', type: 'tel' },
-    { name: 'misthos', label: 'Μισθός', required: true, type: 'number', min: 0 }
+    { 
+        name: 'id', 
+        label: 'ID', 
+        required: true, 
+        type: 'number',
+        min: 1 
+    },
+    { 
+        name: 'onoma', 
+        label: 'Όνομα', 
+        required: true, 
+        type: 'text',
+        pattern: '^[Α-Ωα-ωίϊΐόάέύϋΰήώ\s]+$'
+    },
+    { 
+        name: 'eponymo', 
+        label: 'Επώνυμο', 
+        required: true, 
+        type: 'text',
+        pattern: '^[Α-Ωα-ωίϊΐόάέύϋΰήώ\s]+$'
+    },
+    { 
+        name: 'tilefono', 
+        label: 'Τηλέφωνο', 
+        required: true, 
+        type: 'tel',
+        pattern: '^[0-9]{10}$'
+    }
 ];
 
 function createTamiasForm(formType, data = null) {

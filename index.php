@@ -122,8 +122,8 @@ try {
             $stmt = $db->prepare("
                 SELECT p.*,
                        GROUP_CONCAT(t.Onoma) as Προϊόντα
-                FROM promitheutis p
-                LEFT JOIN TROFIMO t ON p.AFM = t.AFM_PROMITHEUTIS
+                FROM PROMITHEUTIS p
+                LEFT JOIN TROFIMO t ON p.AFM = t.AFM_PROMITHEUTI
                 GROUP BY p.AFM
                 LIMIT ? OFFSET ?
             ");
