@@ -1,5 +1,8 @@
 // eidi/eidi-operations.js
 
+import { loadSection, showMessage, showLoading, hideLoading } from '../script.js';
+import { createFormField } from '../ValidationFunctions.js';
+
 const eidiFields = [
     { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
     { name: 'katigoria', label: 'Κατηγορία', required: true, type: 'text' },

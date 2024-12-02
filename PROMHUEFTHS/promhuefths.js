@@ -1,4 +1,6 @@
 // promitheutis/promitheutis-operations.js
+import { loadSection, showMessage, showLoading, hideLoading } from '../script.js';
+import { createFormField } from '../ValidationFunctions.js';
 
 const promitheutisFields = [
     { name: 'afm', label: 'ΑΦΜ', required: true, pattern: '^\\d{9}$', type: 'text' },

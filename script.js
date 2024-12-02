@@ -6,6 +6,7 @@ import { createEpiskeptisForm, handleEpiskeptisDelete } from './episkepths/episk
 import { createEisitirioForm, handleEisitirioDelete } from './eisitirio/eisitirio.js';
 import { createEkdilosiForm, handleEkdilosiDelete } from './ekdilosi/ekdilosi.js';
 import { createEidiForm, handleEidiDelete } from './eidos/eidos.js';
+import { createPromitheutisForm, handlePromitheutisDelete } from './promhuefths/promhuefths.js';
 
 export async function loadData(section, page = 1) {
     try {

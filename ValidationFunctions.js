@@ -100,4 +100,47 @@ async function handleSubmit(event, formType, endpoint, fields) {
     }
 }
 
+export function createFormField(field, value = null) {
+    const formGroup = document.createElement('div');
+    formGroup.className = 'form-group';
+
+    const label = document.createElement('label');
+    label.htmlFor = field.name;
+    label.textContent = field.label;
+    if (field.required) label.classList.add('required');
+    formGroup.appendChild(label);
+
+    if (field.type === 'select') {
+        const select = document.createElement('select');
+        select.name = field.name;
+        select.id = field.name;
+        select.required = field.required;
+        
+        if (field.options) {
+            field.options.forEach(option => {
+                const opt = document.createElement('option');
+                opt.value = option;
+                opt.textContent = option;
+                if (value === option) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+        
+        formGroup.appendChild(select);
+    } else {
+        const input = document.createElement('input');
+        input.type = field.type;
+        input.name = field.name;
+        input.id = field.name;
+        input.required = field.required;
+        if (field.pattern) input.pattern = field.pattern;
+        if (field.min !== undefined) input.min = field.min;
+        if (field.max !== undefined) input.max = field.max;
+        if (value) input.value = value;
+        formGroup.appendChild(input);
+    }
+
+    return formGroup;
+}
+
 export { validators, validateForm, handleSubmit };

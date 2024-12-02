@@ -1,4 +1,6 @@
 // frontistis/frontistis-operations.js
+import { loadSection, showMessage, showLoading, hideLoading } from '../script.js';
+import { createFormField } from '../ValidationFunctions.js';
 
 const frontistisFields = [
     { name: 'id', label: 'ID', required: true, pattern: '^FR\\d{3}$', type: 'text' },

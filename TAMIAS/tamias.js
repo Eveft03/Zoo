@@ -1,4 +1,6 @@
 // tamias/tamias-operations.js
+import { createFormField } from '../ValidationFunctions.js';
+import { loadSection, showMessage, showLoading, hideLoading } from '../script.js';
 
 const tamiasFields = [
     { name: 'id', label: 'ID', required: true, pattern: '^TM\\d{3}$', type: 'text' },

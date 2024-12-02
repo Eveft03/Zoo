@@ -1,5 +1,8 @@
 // eisitirio/eisitirio-operations.js
 
+import { loadSection, showMessage, showLoading, hideLoading } from '../script.js';
+import { createFormField } from '../ValidationFunctions.js';
+
 const eisitirioFields = [
     { name: 'kodikos', label: 'Κωδικός', required: true, type: 'text' },
     { name: 'hmerominia_ekdoshs', label: 'Ημερομηνία Έκδοσης', required: true, type: 'date' },
