@@ -5,7 +5,7 @@ import { createFrontistisForm, handleFrontistisDelete } from './frontistis/front
 import { createepiskeptisForm, handleepiskeptisDelete } from './episkeptis/episkeptis.js';
 import { createEisitirioForm, handleEisitirioDelete } from './eisitirio/eisitirio.js';
 import { createEkdilosiForm, handleEkdilosiDelete } from './ekdilosi/ekdilosi.js';
-import { createEidiForm, handleEidiDelete } from './eidos/eidos.js';
+import { createeidosForm, handleeidosDelete } from './eidos/eidos.js';
 import { createPromitheutisForm, handlePromitheutisDelete } from './promiueftis/promiueftis.js';
 export async function loadData(section, page = 1) {
     try {
@@ -44,7 +44,7 @@ export function showForm(formType, section, data = null) {
             form = createEkdilosiForm(formType, data);
             break;
         case 'Είδη':
-            form = createEidiForm(formType, data);
+            form = createeidosForm(formType, data);
             break;
         case 'Προμηθευτές':
             form = createPromitheutisForm(formType, data);
@@ -71,7 +71,7 @@ export async function handleDelete(section, data) {
         case 'Εκδηλώσεις':
             return handleEkdilosiDelete(data);
         case 'Είδη':
-            return handleEidiDelete(data);
+            return handleeidosDelete(data);
         case 'Προμηθευτές':
             return handlePromitheutisDelete(data);
         default:

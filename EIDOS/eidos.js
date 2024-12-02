@@ -1,24 +1,24 @@
-// eidi/eidi-operations.js
+// eidos/eidos-operations.js
 
 import { loadSection, showMessage, showLoading, hideLoading } from '../script.js';
 import { createFormField } from '../ValidationFunctions.js';
 
-const eidiFields = [
+const eidosFields = [
     { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
     { name: 'katigoria', label: 'Κατηγορία', required: true, type: 'text' },
     { name: 'perigrafi', label: 'Περιγραφή', required: false, type: 'textarea' }
 ];
 
-function createEidiForm(formType, data = null) {
+function createeidosForm(formType, data = null) {
     const form = document.createElement('form');
     form.className = 'entity-form';
-    form.onsubmit = (e) => handleEidiSubmit(e, formType);
+    form.onsubmit = (e) => handleeidosSubmit(e, formType);
 
     const title = document.createElement('h2');
     title.textContent = `${formType} Είδους`;
     form.appendChild(title);
 
-    eidiFields.forEach(field => {
+    eidosFields.forEach(field => {
         const formGroup = createFormField(field, data?.[field.name]);
         form.appendChild(formGroup);
     });
@@ -42,13 +42,13 @@ function createEidiForm(formType, data = null) {
     return form;
 }
 
-async function handleEidiSubmit(event, formType) {
+async function handleeidosSubmit(event, formType) {
     event.preventDefault();
     showLoading();
 
     try {
         const formData = new FormData(event.target);
-        const url = formType === 'Προσθήκη' ? 'eidi/add_eidi.php' : 'eidi/update_eidi.php';
+        const url = formType === 'Προσθήκη' ? 'eidos/add_eidos.php' : 'eidos/update_eidos.php';
 
         const response = await fetch(url, {
             method: 'POST',
@@ -72,7 +72,7 @@ async function handleEidiSubmit(event, formType) {
     }
 }
 
-async function handleEidiDelete(data) {
+async function handleeidosDelete(data) {
     if (!confirm('Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το είδος;')) {
         return;
     }
@@ -80,7 +80,7 @@ async function handleEidiDelete(data) {
     try {
         showLoading();
 
-        const response = await fetch('eidi/delete_eidi.php', {
+        const response = await fetch('eidos/delete_eidos.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -102,8 +102,8 @@ async function handleEidiDelete(data) {
 }
 
 export {
-    createEidiForm,
-    handleEidiSubmit,
-    handleEidiDelete,
-    eidiFields
+    createeidosForm,
+    handleeidosSubmit,
+    handleeidosDelete,
+    eidosFields
 };
