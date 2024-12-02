@@ -27,7 +27,7 @@ try {
     $db->beginTransaction();
 
     // Check if AFM already exists
-    $stmt = $db->prepare("SELECT AFM FROM promiueftis WHERE AFM = ?");
+    $stmt = $db->prepare("SELECT AFM FROM promitheutis WHERE AFM = ?");
     $stmt->bind_param("s", $_POST['afm']);
     $stmt->execute();
     if ($stmt->get_result()->num_rows > 0) {
@@ -36,7 +36,7 @@ try {
 
     // Insert supplier
     $stmt = $db->prepare("
-        INSERT INTO promiueftis (AFM, Onoma, Eponymo, Tilefono, Dieuthinsi) 
+        INSERT INTO promitheutis (AFM, Onoma, Eponymo, Tilefono, Dieuthinsi) 
         VALUES (?, ?, ?, ?, ?)
     ");
     

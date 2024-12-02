@@ -45,7 +45,7 @@ try {
 
     // Update supplier info if there are any changes
     if (!empty($updates)) {
-        $sql = "UPDATE promiueftis SET " . implode(", ", $updates) . " WHERE AFM = ?";
+        $sql = "UPDATE promitheutis SET " . implode(", ", $updates) . " WHERE AFM = ?";
         $types .= "s";
         $values[] = $_POST['afm'];
         
