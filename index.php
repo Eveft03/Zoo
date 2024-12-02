@@ -117,13 +117,13 @@ try {
             break;
 
         case 'Προμηθευτές':
-            $totalRows = $db->query("SELECT COUNT(*) as count FROM promitheutis")->fetch_assoc()['count'];
+            $totalRows = $db->query("SELECT COUNT(*) as count FROM PROMITHEUTIS")->fetch_assoc()['count'];
             
             $stmt = $db->prepare("
                 SELECT p.*,
                        GROUP_CONCAT(t.Onoma) as Προϊόντα
                 FROM promitheutis p
-                LEFT JOIN TROFIMO t ON p.AFM = t.AFM_promitheutis
+                LEFT JOIN TROFIMO t ON p.AFM = t.AFM_PROMITHEUTIS
                 GROUP BY p.AFM
                 LIMIT ? OFFSET ?
             ");
