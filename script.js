@@ -6,15 +6,16 @@ import { createepiskeptisForm, handleepiskeptisDelete } from './episkeptis/episk
 import { createEisitirioForm, handleEisitirioDelete } from './eisitirio/eisitirio.js';
 import { createEkdilosiForm, handleEkdilosiDelete } from './ekdilosi/ekdilosi.js';
 import { createeidosForm, handleeidosDelete } from './eidos/eidos.js';
-import { createPromitheutisForm, handlePromitheutisDelete } from './promiueftis/promiueftis.js';
-export async function loadData(section, page = 1) {
+import { createpromiueftisForm, handlepromiueftisDelete } from './promiueftis/promiueftis.js';
+
+async function loadData(section, page = 1) {
     try {
-        const response = await fetch(`index.php?section=${encodeURIComponent(section)}&page=${page}`);
+        const encodedSection = encodeURIComponent(section);
+        const response = await fetch(`index.php?section=${encodedSection}&page=${page}`);
         if (!response.ok) throw new Error('Network response was not ok');
-        const data = await response.json();
-        return data;
+        return await response.json();
     } catch (error) {
-        console.error('Error loading data:', error);
+        console.error('Error:', error);
         throw error;
     }
 }
@@ -47,7 +48,7 @@ export function showForm(formType, section, data = null) {
             form = createeidosForm(formType, data);
             break;
         case 'Προμηθευτές':
-            form = createPromitheutisForm(formType, data);
+            form = createpromiueftisForm(formType, data);
             break;
         default:
             throw new Error('Άγνωστη ενότητα');
@@ -73,7 +74,7 @@ export async function handleDelete(section, data) {
         case 'Είδη':
             return handleeidosDelete(data);
         case 'Προμηθευτές':
-            return handlePromitheutisDelete(data);
+            return handlepromiueftisDelete(data);
         default:
             throw new Error('Άγνωστη ενότητα');
     }

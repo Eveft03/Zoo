@@ -1,8 +1,8 @@
-// promitheutis/promitheutis-operations.js
+
 import { loadSection, showMessage, showLoading, hideLoading } from '../script.js';
 import { createFormField } from '../ValidationFunctions.js';
 
-const promitheutisFields = [
+const promiueftisFields = [
     { name: 'afm', label: 'ΑΦΜ', required: true, pattern: '^\\d{9}$', type: 'text' },
     { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
     { name: 'eponymo', label: 'Επώνυμο', required: true, type: 'text' },
@@ -11,16 +11,16 @@ const promitheutisFields = [
     { name: 'trofima', label: 'Προϊόντα', required: false, type: 'multiselect', dataSource: 'get_trofima.php' }
 ];
 
-function createPromitheutisForm(formType, data = null) {
+function createpromiueftisForm(formType, data = null) {
     const form = document.createElement('form');
     form.className = 'entity-form';
-    form.onsubmit = (e) => handlePromitheutisSubmit(e, formType);
+    form.onsubmit = (e) => handlepromiueftisSubmit(e, formType);
 
     const title = document.createElement('h2');
     title.textContent = `${formType} Προμηθευτή`;
     form.appendChild(title);
 
-    promitheutisFields.forEach(field => {
+    promiueftisFields.forEach(field => {
         const formGroup = createFormField(field, data?.[field.name]);
         form.appendChild(formGroup);
     });
@@ -44,13 +44,13 @@ function createPromitheutisForm(formType, data = null) {
     return form;
 }
 
-async function handlePromitheutisSubmit(event, formType) {
+async function handlepromiueftisSubmit(event, formType) {
     event.preventDefault();
     showLoading();
 
     try {
         const formData = new FormData(event.target);
-        const url = formType === 'Προσθήκη' ? 'promitheutis/add_promitheutis.php' : 'promitheutis/update_promitheutis.php';
+        const url = formType === 'Προσθήκη' ? 'promiueftis/add_promiueftis.php' : 'promiueftis/update_promiueftis.php';
 
         const response = await fetch(url, {
             method: 'POST',
@@ -74,7 +74,7 @@ async function handlePromitheutisSubmit(event, formType) {
     }
 }
 
-async function handlePromitheutisDelete(data) {
+async function handlepromiueftisDelete(data) {
     if (!confirm('Είστε σίγουροι ότι θέλετε να διαγράψετε αυτόν τον προμηθευτή;')) {
         return;
     }
@@ -82,7 +82,7 @@ async function handlePromitheutisDelete(data) {
     try {
         showLoading();
 
-        const response = await fetch('promitheutis/delete_promitheutis.php', {
+        const response = await fetch('promiueftis/delete_promiueftis.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -104,8 +104,8 @@ async function handlePromitheutisDelete(data) {
 }
 
 export {
-    createPromitheutisForm,
-    handlePromitheutisSubmit,
-    handlePromitheutisDelete,
-    promitheutisFields
+    createpromiueftisForm,
+    handlepromiueftisSubmit,
+    handlepromiueftisDelete,
+    promiueftisFields
 };

@@ -33,7 +33,7 @@ try {
     }
 
     // Διαγραφή προμηθευτή
-    $stmt = $db->prepare("DELETE FROM PROMITHEUTIS WHERE AFM = ?");
+    $stmt = $db->prepare("DELETE FROM promiueftis WHERE AFM = ?");
     $stmt->bind_param("s", $data['AFM']);
     
     if (!$stmt->execute()) {
