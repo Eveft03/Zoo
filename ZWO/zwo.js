@@ -1,6 +1,8 @@
-// zwo/zwo-operations.js
+// Import necessary functions
+import { validateForm } from '../ValidationFunctions.js';
+import { showMessage, showLoading, hideLoading, loadSection } from '../script.js';
 
-// Form field definitions
+
 const zwoFields = [
     { name: 'kodikos', label: 'Κωδικός', required: true, pattern: '^Z\\d{6}$', type: 'text' },
     { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
@@ -8,7 +10,6 @@ const zwoFields = [
     { name: 'onoma_eidous', label: 'Είδος', required: true, type: 'select', dataSource: 'get_species.php' }
 ];
 
-// Create ZWO form
 function createZwoForm(formType, data = null) {
     const form = document.createElement('form');
     form.className = 'entity-form';
@@ -19,11 +20,54 @@ function createZwoForm(formType, data = null) {
     form.appendChild(title);
 
     zwoFields.forEach(field => {
-        const formGroup = createFormField(field, data?.[field.name]);
+        const formGroup = document.createElement('div');
+        formGroup.className = 'form-group';
+
+        const label = document.createElement('label');
+        label.htmlFor = field.name;
+        label.textContent = field.label;
+        if (field.required) label.classList.add('required');
+        formGroup.appendChild(label);
+
+        if (field.type === 'select') {
+            const select = document.createElement('select');
+            select.name = field.name;
+            select.id = field.name;
+            select.required = field.required;
+            
+            // Populate select with options from dataSource
+            fetch(field.dataSource)
+                .then(response => response.json())
+                .then(species => {
+                    species.forEach(s => {
+                        const option = document.createElement('option');
+                        option.value = s.Onoma;
+                        option.textContent = s.Onoma;
+                        if (data && data[field.name] === s.Onoma) {
+                            option.selected = true;
+                        }
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching species:', error));
+
+            formGroup.appendChild(select);
+        } else {
+            const input = document.createElement('input');
+            input.type = field.type;
+            input.name = field.name;
+            input.id = field.name;
+            input.required = field.required;
+            if (field.pattern) input.pattern = field.pattern;
+            if (field.min !== undefined) input.min = field.min;
+            if (field.max !== undefined) input.max = field.max;
+            if (data && data[field.name]) input.value = data[field.name];
+            formGroup.appendChild(input);
+        }
+
         form.appendChild(formGroup);
     });
 
-    // Add form buttons
     const buttonsDiv = document.createElement('div');
     buttonsDiv.className = 'form-buttons';
 
@@ -43,27 +87,29 @@ function createZwoForm(formType, data = null) {
     return form;
 }
 
-// Handle ZWO form submission
 async function handleZwoSubmit(event, formType) {
     event.preventDefault();
     showLoading();
 
     try {
         const formData = new FormData(event.target);
-        const url = formType === 'Προσθήκη' ? 'zwo/add_zwo.php' : 'zwo/update_zwo.php';
+        const errors = validateForm(formData, zwoFields);
+        
+        if (errors.length > 0) {
+            hideLoading();
+            showMessage(errors.join('\n'), true);
+            return;
+        }
 
-        const response = await fetch(url, {
+        const response = await fetch(`./zwo/${formType === 'Προσθήκη' ? 'add' : 'update'}_zwo.php`, {
             method: 'POST',
             body: formData
         });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Σφάλμα απόκρισης: ${errorText}`);
-        }
-
         const result = await response.json();
-        if (result.status === 'error') throw new Error(result.message);
+        if (result.status === 'error') {
+            throw new Error(result.message);
+        }
 
         showMessage(result.message, false);
         loadSection('Ζώα');
@@ -74,7 +120,6 @@ async function handleZwoSubmit(event, formType) {
     }
 }
 
-// Handle ZWO deletion
 async function handleZwoDelete(data) {
     if (!confirm('Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το ζώο;')) {
         return;
@@ -82,18 +127,18 @@ async function handleZwoDelete(data) {
 
     try {
         showLoading();
-
-        const response = await fetch('zwo/delete_zwo.php', {
+        const response = await fetch('./zwo/delete_zwo.php', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(data)
         });
 
         const result = await response.json();
-        if (result.status === 'error') throw new Error(result.message);
+        if (result.status === 'error') {
+            throw new Error(result.message);
+        }
 
         showMessage(result.message, false);
         await loadSection('Ζώα');

@@ -64,27 +64,22 @@ try {
             $result = $stmt->get_result();
             break;
 
-            case 'Εισιτήρια':
-                $totalRows = $db->query("SELECT COUNT(*) as count FROM EISITIRIO")->fetch_assoc()['count'];
-                
-                $stmt = $db->prepare("
-                    SELECT e.*, t.*, ep.*
-                    FROM EISITIRIO e
-                    LEFT JOIN TAMIAS t ON e.IDTamia = t.ID
-                    LEFT JOIN EPISKEPTIS ep ON e.Email = ep.Email
-                    LIMIT ? OFFSET ?
-                ");
-                $stmt->bind_param("ii", $limit, $offset);
-                $stmt->execute();
-                $result = $stmt->get_result();
+        case 'Εισιτήρια':
+            $totalRows = $db->query("SELECT COUNT(*) as count FROM EISITIRIO")->fetch_assoc()['count'];
             
-                // Debug
-                if (!$result) {
-                    error_log("Query error: " . $db->error);
-                } else {
-                    error_log("Rows returned: " . $result->num_rows);
-                }
-                break;
+            $stmt = $db->prepare("
+                SELECT e.*, t.Onoma as Tamias_Onoma, t.Eponymo as Tamias_Eponymo,
+                       ep.Onoma as Episkeptis_Onoma, ep.Eponymo as Episkeptis_Eponymo
+                FROM EISITIRIO e
+                LEFT JOIN TAMIAS t ON e.IDTamia = t.ID
+                LEFT JOIN EPISKEPTIS ep ON e.Email = ep.Email
+                ORDER BY e.Hmerominia_Ekdoshs DESC, e.Kodikos
+                LIMIT ? OFFSET ?
+            ");
+            $stmt->bind_param("ii", $limit, $offset);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            break;
 
         case 'Ταμίες':
             $totalRows = $db->query("SELECT COUNT(*) as count FROM TAMIAS")->fetch_assoc()['count'];
@@ -166,12 +161,4 @@ try {
     ], JSON_UNESCAPED_UNICODE);
 }
 
-// Στο index.php, προσθήκη htmlspecialchars για output
-foreach ($response['data'] as &$row) {
-    array_walk($row, function(&$value) {
-        $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
-    });
-}
-
 ?>
-

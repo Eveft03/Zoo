@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="el">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Διαχείριση Ζωολογικού Κήπου</title>
     <link rel="stylesheet" href="style.css">
-    <script type="module" src="script.js"></script>
 </head>
+
 <body>
     <header>
         <h1>Διαχείριση Ζωολογικού Κήπου</h1>
@@ -14,14 +15,14 @@
 
     <nav>
         <ul>
-            <li><a href="#" onclick="loadSection('Ζώα')">Ζώα</a></li>
-            <li><a href="#" onclick="loadSection('Είδη')">Είδη</a></li>
-            <li><a href="#" onclick="loadSection('Εκδηλώσεις')">Εκδηλώσεις</a></li>
-            <li><a href="#" onclick="loadSection('Εισιτήρια')">Εισιτήρια</a></li>
-            <li><a href="#" onclick="loadSection('Ταμίες')">Ταμίες</a></li>
-            <li><a href="#" onclick="loadSection('Επισκέπτες')">Επισκέπτες</a></li>
-            <li><a href="#" onclick="loadSection('Φροντιστές')">Φροντιστές</a></li>
-            <li><a href="#" onclick="loadSection('Προμηθευτές')">Προμηθευτές</a></li>
+            <li><a href="#" data-section="Ζώα">Ζώα</a></li>
+            <li><a href="#" data-section="Είδη">Είδη</a></li>
+            <li><a href="#" data-section="Εκδηλώσεις">Εκδηλώσεις</a></li>
+            <li><a href="#" data-section="Εισιτήρια">Εισιτήρια</a></li>
+            <li><a href="#" data-section="Ταμίες">Ταμίες</a></li>
+            <li><a href="#" data-section="Επισκέπτες">Επισκέπτες</a></li>
+            <li><a href="#" data-section="Φροντιστές">Φροντιστές</a></li>
+            <li><a href="#" data-section="Προμηθευτές">Προμηθευτές</a></li>
         </ul>
     </nav>
 
@@ -30,12 +31,17 @@
             <div class="spinner"></div>
             <p>Φόρτωση...</p>
         </div>
-
         <div id="content"></div>
     </main>
 
     <footer>
         <p>Ζωολογικός Κήπος © 2024</p>
     </footer>
+
+    <!-- Διόρθωση αναφοράς στο script.js -->
+    <script type="module" src="script.js"></script>
+    <script type="module" src="ValidationFunctions.js"></script>
+    <script type="module" src="zwo/zwo.js"></script>
 </body>
+
 </html>
