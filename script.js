@@ -1,13 +1,12 @@
 // Import all operations
 import { createZwoForm, handleZwoDelete } from './zwo/zwo.js';
 import { createTamiasForm, handleTamiasDelete } from './tamias/tamias.js';
-import { createFrontistisForm, handleFrontistisDelete } from './frontisths/frontisths.js';
-import { createEpiskeptisForm, handleEpiskeptisDelete } from './episkepths/episkepths.js';
+import { createFrontistisForm, handleFrontistisDelete } from './frontistis/frontistis.js';
+import { createepiskeptisForm, handleepiskeptisDelete } from './episkeptis/episkeptis.js';
 import { createEisitirioForm, handleEisitirioDelete } from './eisitirio/eisitirio.js';
 import { createEkdilosiForm, handleEkdilosiDelete } from './ekdilosi/ekdilosi.js';
 import { createEidiForm, handleEidiDelete } from './eidos/eidos.js';
 import { createPromitheutisForm, handlePromitheutisDelete } from './promhuefths/promhuefths.js';
-
 export async function loadData(section, page = 1) {
     try {
         const response = await fetch(`index.php?section=${encodeURIComponent(section)}&page=${page}`);
@@ -25,7 +24,7 @@ export function showForm(formType, section, data = null) {
     contentElement.innerHTML = '';
 
     let form;
-    switch(section) {
+    switch (section) {
         case 'Ζώα':
             form = createZwoForm(formType, data);
             break;
@@ -36,7 +35,7 @@ export function showForm(formType, section, data = null) {
             form = createFrontistisForm(formType, data);
             break;
         case 'Επισκέπτες':
-            form = createEpiskeptisForm(formType, data);
+            form = createepiskeptisForm(formType, data);
             break;
         case 'Εισιτήρια':
             form = createEisitirioForm(formType, data);
@@ -47,6 +46,9 @@ export function showForm(formType, section, data = null) {
         case 'Είδη':
             form = createEidiForm(formType, data);
             break;
+        case 'Προμηθευτές':
+            form = createPromitheutisForm(formType, data);
+            break;
         default:
             throw new Error('Άγνωστη ενότητα');
     }
@@ -55,7 +57,7 @@ export function showForm(formType, section, data = null) {
 }
 
 export async function handleDelete(section, data) {
-    switch(section) {
+    switch (section) {
         case 'Ζώα':
             return handleZwoDelete(data);
         case 'Ταμίες':
@@ -63,13 +65,15 @@ export async function handleDelete(section, data) {
         case 'Φροντιστές':
             return handleFrontistisDelete(data);
         case 'Επισκέπτες':
-            return handleEpiskeptisDelete(data);
+            return handleepiskeptisDelete(data);
         case 'Εισιτήρια':
             return handleEisitirioDelete(data);
         case 'Εκδηλώσεις':
             return handleEkdilosiDelete(data);
         case 'Είδη':
             return handleEidiDelete(data);
+        case 'Προμηθευτές':
+            return handlePromitheutisDelete(data);
         default:
             throw new Error('Άγνωστη ενότητα');
     }
@@ -99,10 +103,10 @@ export function showMessage(message, isError = false) {
     const messageDiv = document.createElement('div');
     messageDiv.className = isError ? 'error-message' : 'success-message';
     messageDiv.textContent = message;
-    
+
     const content = document.getElementById('content');
     content.insertBefore(messageDiv, content.firstChild);
-    
+
     setTimeout(() => messageDiv.remove(), 5000);
 }
 
@@ -172,12 +176,12 @@ function displayData(section, data) {
         if (data.pagination) {
             const paginationDiv = document.createElement('div');
             paginationDiv.className = 'pagination';
-            
+
             const totalPages = data.pagination.totalPages;
             const currentPage = data.pagination.currentPage;
-            
+
             for (let i = 1; i <= totalPages; i++) {
-                if (i === 1 || i === totalPages || 
+                if (i === 1 || i === totalPages ||
                     (i >= currentPage - 2 && i <= currentPage + 2)) {
                     const pageLink = document.createElement('a');
                     pageLink.href = '#';
@@ -218,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const section = e.target.textContent;
             loadSection(section);
-            
+
             // Update active link
             links.forEach(l => l.classList.remove('active'));
             e.target.classList.add('active');

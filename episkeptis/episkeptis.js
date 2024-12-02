@@ -37,10 +37,10 @@ const episkeptisFields = [
     }
 ];
 
-function createEpiskeptisForm(formType, data = null) {
+function createepiskeptisForm(formType, data = null) {
     const form = document.createElement('form');
     form.className = 'entity-form';
-    form.onsubmit = (e) => handleEpiskeptisSubmit(e, formType);
+    form.onsubmit = (e) => handleepiskeptisSubmit(e, formType);
 
     const title = document.createElement('h2');
     title.textContent = `${formType} Επισκέπτη`;
@@ -80,13 +80,13 @@ function createEpiskeptisForm(formType, data = null) {
     return form;
 }
 
-async function handleEpiskeptisSubmit(event, formType) {
+async function handleepiskeptisSubmit(event, formType) {
     event.preventDefault();
     showLoading();
 
     try {
         const formData = new FormData(event.target);
-        const url = formType === 'Προσθήκη' ? 'episkeptis/add_episkeptis.php' : 'episkeptis/update_episkeptis.php';
+        const url = formType === 'Προσθήκη' ? 'episkeptis/add_episkepti.php' : 'episkeptis/update_episkepti.php';
 
         const response = await fetch(url, {
             method: 'POST',
@@ -110,7 +110,7 @@ async function handleEpiskeptisSubmit(event, formType) {
     }
 }
 
-async function handleEpiskeptisDelete(data) {
+async function handleepiskeptisDelete(data) {
     if (!confirm('Είστε σίγουροι ότι θέλετε να διαγράψετε αυτόν τον επισκέπτη;')) {
         return;
     }
@@ -118,7 +118,7 @@ async function handleEpiskeptisDelete(data) {
     try {
         showLoading();
 
-        const response = await fetch('episkeptis/delete_episkeptis.php', {
+        const response = await fetch('episkeptis/delete_episkepti.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -140,8 +140,8 @@ async function handleEpiskeptisDelete(data) {
 }
 
 export {
-    createEpiskeptisForm,
-    handleEpiskeptisSubmit,
-    handleEpiskeptisDelete,
+    createepiskeptisForm,
+    handleepiskeptisSubmit,
+    handleepiskeptisDelete,
     episkeptisFields
 };
