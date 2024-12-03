@@ -15,8 +15,8 @@ try {
     }
 
     // Validate ticket code
-    if (!preg_match('/^\d{5}$/', $_POST['kodikos'])) {
-        throw new Exception("Ο κωδικός πρέπει να είναι 5ψήφιος αριθμός");
+    if (!is_numeric($_POST['kodikos']) || $_POST['kodikos'] <= 0) {
+        throw new Exception("Ο κωδικός πρέπει να είναι θετικός ακέραιος αριθμός");
     }
 
     // Validate date (no Sundays)
@@ -30,6 +30,11 @@ try {
         throw new Exception("Μη έγκυρη τιμή");
     }
 
+    // Validate tamias ID
+    if (!is_numeric($_POST['idTamia']) || $_POST['idTamia'] <= 0) {
+        throw new Exception("Μη έγκυρο ID ταμία");
+    }
+
     // Validate email
     if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
         throw new Exception("Μη έγκυρη διεύθυνση email");
@@ -39,10 +44,18 @@ try {
 
     // Check for duplicate ticket
     $stmt = $db->prepare("SELECT Kodikos FROM EISITIRIO WHERE Kodikos = ? AND Hmerominia_Ekdoshs = ?");
-    $stmt->bind_param("ss", $_POST['kodikos'], $_POST['hmerominia_ekdoshs']);
+    $stmt->bind_param("is", $_POST['kodikos'], $_POST['hmerominia_ekdoshs']);
     $stmt->execute();
     if ($stmt->get_result()->num_rows > 0) {
         throw new Exception("Υπάρχει ήδη εισιτήριο με αυτόν τον κωδικό για την ίδια ημερομηνία");
+    }
+
+    // Check if tamias exists
+    $stmt = $db->prepare("SELECT ID FROM TAMIAS WHERE ID = ?");
+    $stmt->bind_param("i", $_POST['idTamia']);
+    $stmt->execute();
+    if ($stmt->get_result()->num_rows === 0) {
+        throw new Exception("Δεν βρέθηκε ο ταμίας");
     }
 
     // Check for events if ticket type is "Με εκδήλωση"
@@ -61,7 +74,7 @@ try {
         VALUES (?, ?, ?, ?, ?, ?)
     ");
     
-    $stmt->bind_param("ssdsss", 
+    $stmt->bind_param("isdiss", 
         $_POST['kodikos'],
         $_POST['hmerominia_ekdoshs'],
         $_POST['timi'],

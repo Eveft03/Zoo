@@ -1,5 +1,4 @@
 <?php
-// add_zwo.php
 require_once 'db_connection.php';
 
 header('Content-Type: application/json; charset=utf-8');

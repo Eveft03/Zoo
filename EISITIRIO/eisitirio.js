@@ -4,10 +4,10 @@ import { loadSection, showMessage, showLoading, hideLoading } from '../script.js
 import { createFormField } from '../ValidationFunctions.js';
 
 const eisitirioFields = [
-    { name: 'kodikos', label: 'Κωδικός', required: true, type: 'text' },
+    { name: 'kodikos', label: 'Κωδικός', required: true, type: 'number', min: 1 },
     { name: 'hmerominia_ekdoshs', label: 'Ημερομηνία Έκδοσης', required: true, type: 'date' },
     { name: 'timi', label: 'Τιμή', required: true, type: 'number', min: 0 },
-    { name: 'idTamia', label: 'ID Ταμία', required: true, pattern: '^TM\\d{3}$', type: 'text' },
+    { name: 'idTamia', label: 'ID Ταμία', required: true, type: 'number', min: 1 },
     { name: 'email', label: 'Email Επισκέπτη', required: true, type: 'email' },
     { name: 'katigoria', label: 'Κατηγορία', required: true, type: 'select', options: ['Με εκδήλωση', 'Χωρίς εκδήλωση'] }
 ];

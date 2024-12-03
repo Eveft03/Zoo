@@ -93,15 +93,12 @@ async function handleZwoSubmit(event, formType) {
 
     try {
         const formData = new FormData(event.target);
-        const errors = validateForm(formData, zwoFields);
-        
-        if (errors.length > 0) {
-            hideLoading();
-            showMessage(errors.join('\n'), true);
-            return;
-        }
+        // Convert etos_genesis to YEAR format
+        const year = formData.get('etos_genesis');
+        formData.set('etos_genesis', year);
 
-        const response = await fetch(`./zwo/${formType === 'Προσθήκη' ? 'add' : 'update'}_zwo.php`, {
+        const url = `./zwo/${formType === 'Προσθήκη' ? 'add' : 'update'}_zwo.php`;
+        const response = await fetch(url, {
             method: 'POST',
             body: formData
         });
@@ -119,7 +116,6 @@ async function handleZwoSubmit(event, formType) {
         hideLoading();
     }
 }
-
 async function handleZwoDelete(data) {
     if (!confirm('Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το ζώο;')) {
         return;

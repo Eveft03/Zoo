@@ -3,7 +3,7 @@ import { loadSection, showMessage, showLoading, hideLoading } from '../script.js
 import { createFormField } from '../ValidationFunctions.js';
 
 const frontistisFields = [
-    { name: 'id', label: 'ID', required: true, pattern: '^FR\\d{3}$', type: 'text' },
+    { name: 'id', label: 'ID', required: true, type: 'number', min: 1 },
     { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
     { name: 'eponymo', label: 'Επώνυμο', required: true, type: 'text' },
     { name: 'tilefono', label: 'Τηλέφωνο', required: true, pattern: '^\\d{10}$', type: 'tel' },

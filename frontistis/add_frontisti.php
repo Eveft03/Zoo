@@ -14,9 +14,9 @@ try {
         }
     }
 
-    // Validate ID format
-    if (!preg_match('/^FR\d{3}$/', $_POST['id'])) {
-        throw new Exception("Το ID πρέπει να έχει τη μορφή 'FR' ακολουθούμενο από 3 ψηφία");
+    // Validate ID
+    if (!is_numeric($_POST['id']) || $_POST['id'] <= 0) {
+        throw new Exception("Το ID πρέπει να είναι θετικός ακέραιος αριθμός");
     }
 
     // Validate phone number
@@ -33,7 +33,7 @@ try {
 
     // Check for duplicate ID
     $stmt = $db->prepare("SELECT ID FROM FRONTISTIS WHERE ID = ?");
-    $stmt->bind_param("s", $_POST['id']);
+    $stmt->bind_param("i", $_POST['id']);
     $stmt->execute();
     if ($stmt->get_result()->num_rows > 0) {
         throw new Exception("Το ID φροντιστή υπάρχει ήδη");
@@ -45,7 +45,7 @@ try {
         VALUES (?, ?, ?, ?, ?)
     ");
     
-    $stmt->bind_param("ssssd", 
+    $stmt->bind_param("isssd", 
         $_POST['id'],
         htmlspecialchars($_POST['onoma']),
         htmlspecialchars($_POST['eponymo']),
