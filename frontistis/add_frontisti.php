@@ -1,37 +1,24 @@
+// add_frontistis.php
 <?php
 require_once 'db_connection.php';
-
 header('Content-Type: application/json; charset=utf-8');
 
 try {
     $db = getDatabase();
     
-    // Validate required fields
-    $required_fields = ['id', 'onoma', 'eponymo', 'tilefono', 'misthos'];
+    $required_fields = ['id', 'onoma', 'eponymo'];
     foreach ($required_fields as $field) {
         if (!isset($_POST[$field]) || empty($_POST[$field])) {
             throw new Exception("Το πεδίο $field είναι υποχρεωτικό");
         }
     }
 
-    // Validate ID
     if (!is_numeric($_POST['id']) || $_POST['id'] <= 0) {
         throw new Exception("Το ID πρέπει να είναι θετικός ακέραιος αριθμός");
     }
 
-    // Validate phone number
-    if (!preg_match('/^\d{10}$/', $_POST['tilefono'])) {
-        throw new Exception("Μη έγκυρος αριθμός τηλεφώνου");
-    }
-
-    // Validate salary
-    if (!is_numeric($_POST['misthos']) || $_POST['misthos'] <= 0) {
-        throw new Exception("Μη έγκυρος μισθός");
-    }
-
     $db->beginTransaction();
 
-    // Check for duplicate ID
     $stmt = $db->prepare("SELECT ID FROM FRONTISTIS WHERE ID = ?");
     $stmt->bind_param("i", $_POST['id']);
     $stmt->execute();
@@ -39,18 +26,15 @@ try {
         throw new Exception("Το ID φροντιστή υπάρχει ήδη");
     }
 
-    // Insert caretaker
     $stmt = $db->prepare("
-        INSERT INTO FRONTISTIS (ID, Onoma, Eponymo, Tilefono, Misthos)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO FRONTISTIS (ID, Onoma, Eponymo)
+        VALUES (?, ?, ?)
     ");
     
-    $stmt->bind_param("isssd", 
+    $stmt->bind_param("iss", 
         $_POST['id'],
         htmlspecialchars($_POST['onoma']),
-        htmlspecialchars($_POST['eponymo']),
-        $_POST['tilefono'],
-        $_POST['misthos']
+        htmlspecialchars($_POST['eponymo'])
     );
     
     if (!$stmt->execute()) {

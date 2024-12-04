@@ -1,15 +1,14 @@
+// add_tamias.php
 <?php
 require_once 'db_connection.php';
-
 header('Content-Type: application/json; charset=utf-8');
 
 try {
     $db = getDatabase();
     
-    // Validate required fields
     $required_fields = ['id', 'onoma', 'eponymo'];
     foreach ($required_fields as $field) {
-        if (!isset($_POST[$field]) || empty(trim($_POST[$field]))) {
+        if (!isset($_POST[$field]) || empty($_POST[$field])) {
             throw new Exception("Το πεδίο $field είναι υποχρεωτικό");
         }
     }
@@ -20,7 +19,6 @@ try {
 
     $db->beginTransaction();
 
-    // Check for duplicate ID
     $stmt = $db->prepare("SELECT ID FROM TAMIAS WHERE ID = ?");
     $stmt->bind_param("i", $_POST['id']);
     $stmt->execute();
@@ -28,7 +26,6 @@ try {
         throw new Exception("Το ID ταμία υπάρχει ήδη");
     }
 
-    // Insert cashier
     $stmt = $db->prepare("
         INSERT INTO TAMIAS (ID, Onoma, Eponymo)
         VALUES (?, ?, ?)
@@ -39,7 +36,7 @@ try {
         htmlspecialchars($_POST['onoma']),
         htmlspecialchars($_POST['eponymo'])
     );
-
+    
     if (!$stmt->execute()) {
         throw new Exception("Σφάλμα κατά την εισαγωγή του ταμία");
     }

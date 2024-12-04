@@ -5,10 +5,7 @@ import { createFormField } from '../ValidationFunctions.js';
 const frontistisFields = [
     { name: 'id', label: 'ID', required: true, type: 'number', min: 1 },
     { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
-    { name: 'eponymo', label: 'Επώνυμο', required: true, type: 'text' },
-    { name: 'tilefono', label: 'Τηλέφωνο', required: true, pattern: '^\\d{10}$', type: 'tel' },
-    { name: 'misthos', label: 'Μισθός', required: true, type: 'number', min: 0 },
-    { name: 'zwa', label: 'Ζώα Φροντίδας', required: false, type: 'multiselect', dataSource: 'get_animals.php' }
+    { name: 'eponymo', label: 'Επώνυμο', required: true, type: 'text' }
 ];
 
 function createFrontistisForm(formType, data = null) {

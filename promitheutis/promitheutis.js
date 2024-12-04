@@ -5,10 +5,7 @@ import { createFormField } from '../ValidationFunctions.js';
 const promitheutisFields = [
     { name: 'afm', label: 'ΑΦΜ', required: true, pattern: '^\\d{9}$', type: 'text' },
     { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
-    { name: 'eponymo', label: 'Επώνυμο', required: true, type: 'text' },
-    { name: 'tilefono', label: 'Τηλέφωνο', required: true, pattern: '^\\d{10}$', type: 'tel' },
-    { name: 'dieuthinsi', label: 'Διεύθυνση', required: true, type: 'text' },
-    { name: 'trofima', label: 'Προϊόντα', required: false, type: 'multiselect', dataSource: 'get_trofima.php' }
+    { name: 'thlefono', label: 'Τηλέφωνο', required: true, pattern: '^\\d{10}$', type: 'tel' }
 ];
 
 function createpromitheutisForm(formType, data = null) {
