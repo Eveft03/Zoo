@@ -8,6 +8,7 @@ import { createEkdilosiForm, handleEkdilosiDelete } from './ekdilosi/ekdilosi.js
 import { createeidosForm, handleeidosDelete } from './eidos/eidos.js';
 import { createpromitheutisForm, handlepromitheutisDelete } from './promitheutis/promitheutis.js';
 
+// Στο script.js
 async function loadData(section, page = 1) {
     try {
         // Χρήση encodeURIComponent για σωστή κωδικοποίηση
@@ -18,13 +19,17 @@ async function loadData(section, page = 1) {
             throw new Error('Network response was not ok');
         }
         
-        return await response.json();
+        const data = await response.json();
+        if (data.status === 'error') {
+            throw new Error(data.message);
+        }
+        
+        return data;
     } catch (error) {
         console.error('Error:', error);
         throw error;
     }
 }
-
 export function showForm(formType, section, data = null) {
     const contentElement = document.getElementById('content');
     contentElement.innerHTML = '';

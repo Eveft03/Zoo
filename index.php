@@ -17,27 +17,26 @@ try {
         'message' => ''
     ];
 
-    switch($section) {
-        case 'Ζώα':
-            $totalRows = $db->query("SELECT COUNT(*) as count FROM ZWO")->fetch_assoc()['count'];
-            
-            $stmt = $db->prepare("
-                SELECT 
+    switch($section) { 
+
+    case 'Ζώα':
+        $totalRows = $db->query("SELECT COUNT(*) as count FROM ZWO")->fetch_assoc()['count'];
+        
+        $stmt = $db->prepare("
+            SELECT 
                 z.Kodikos,
                 z.Onoma,
                 z.Etos_Genesis,
-                z.Onoma_Eidous,
-                e.Katigoria,
-                e.Perigrafi
-            FROM ZWO z 
-            JOIN EIDOS e ON z.Onoma_Eidous = e.Onoma 
+                z.Onoma_Eidous
+            FROM ZWO z
             ORDER BY z.Kodikos
             LIMIT ? OFFSET ?
         ");
-            $stmt->bind_param("ii", $limit, $offset);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            break;
+        
+        $stmt->bind_param("ii", $limit, $offset);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        break;
 
         case 'Είδη':
             $totalRows = $db->query("SELECT COUNT(*) as count FROM EIDOS")->fetch_assoc()['count'];
@@ -153,7 +152,8 @@ try {
 
     echo json_encode($response, JSON_UNESCAPED_UNICODE);
 
-} catch (Exception $e) {
+}
+catch (Exception $e) {
     http_response_code(500);
     echo json_encode([
         'status' => 'error',
