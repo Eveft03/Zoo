@@ -45,24 +45,33 @@ function createeidosForm(formType, data = null) {
 async function handleeidosSubmit(event, formType) {
     event.preventDefault();
     showLoading();
-
+ 
     try {
         const formData = new FormData(event.target);
         const url = formType === 'Προσθήκη' ? 'eidos/add_eidos.php' : 'eidos/update_eidos.php';
-
+ 
         const response = await fetch(url, {
             method: 'POST',
+            headers: {
+                'Accept': 'application/json'
+            },
             body: formData
         });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Σφάλμα απόκρισης: ${errorText}`);
+ 
+        const text = await response.text();
+        console.log('Server response:', text);
+ 
+        let result;
+        try {
+            result = JSON.parse(text);
+        } catch (e) {
+            throw new Error('Μη έγκυρη απάντηση από τον server');
         }
-
-        const result = await response.json();
-        if (result.status === 'error') throw new Error(result.message);
-
+ 
+        if (result.status === 'error') {
+            throw new Error(result.message);
+        }
+ 
         showMessage(result.message, false);
         loadSection('Είδη');
     } catch (error) {
@@ -70,7 +79,7 @@ async function handleeidosSubmit(event, formType) {
     } finally {
         hideLoading();
     }
-}
+ }
 
 async function handleeidosDelete(data) {
     if (!confirm('Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το είδος;')) {
