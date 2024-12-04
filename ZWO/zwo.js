@@ -1,5 +1,5 @@
 // Import necessary functions
-import { validateForm } from '../ValidationFunctions.js';
+
 import { showMessage, showLoading, hideLoading, loadSection } from '../script.js';
 
 
