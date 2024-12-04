@@ -111,9 +111,14 @@ export function hideLoading() {
 }
 
 export function showMessage(message, isError = false) {
+    // Αφαίρεση HTML tags αν υπάρχουν
+    const sanitizedMessage = typeof message === 'string' ? 
+        message.replace(/<[^>]*>/g, '') : 
+        'Προέκυψε ένα σφάλμα';
+
     const messageDiv = document.createElement('div');
     messageDiv.className = isError ? 'error-message' : 'success-message';
-    messageDiv.textContent = message;
+    messageDiv.textContent = sanitizedMessage;
 
     const content = document.getElementById('content');
     content.insertBefore(messageDiv, content.firstChild);

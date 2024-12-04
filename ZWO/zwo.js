@@ -93,17 +93,26 @@ async function handleZwoSubmit(event, formType) {
 
     try {
         const formData = new FormData(event.target);
-        // Convert etos_genesis to YEAR format
-        const year = formData.get('etos_genesis');
-        formData.set('etos_genesis', year);
-
         const url = `./zwo/${formType === 'Προσθήκη' ? 'add' : 'update'}_zwo.php`;
+
         const response = await fetch(url, {
             method: 'POST',
+            headers: {
+                'Accept': 'application/json'
+            },
             body: formData
         });
 
-        const result = await response.json();
+        const text = await response.text();
+        console.log('Server response:', text);
+
+        let result;
+        try {
+            result = JSON.parse(text);
+        } catch (e) {
+            throw new Error('Μη έγκυρη απάντηση από τον server');
+        }
+
         if (result.status === 'error') {
             throw new Error(result.message);
         }
