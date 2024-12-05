@@ -5,7 +5,7 @@ import { createFormField } from '../ValidationFunctions.js';
 const episkeptisFields = [
     {
         name: 'email',
-        label: 'Email ',
+        label: 'Email',
         required: true,
         type: 'email',
         pattern: '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}',
@@ -13,7 +13,7 @@ const episkeptisFields = [
     },
     {
         name: 'onoma',
-        label: 'Όνομα ',
+        label: 'Όνομα',
         required: true,
         type: 'text',
         minLength: 2,
@@ -21,19 +21,11 @@ const episkeptisFields = [
     },
     {
         name: 'eponymo',
-        label: 'Επώνυμο ',
+        label: 'Επώνυμο',
         required: true,
         type: 'text',
         minLength: 2,
         maxLength: 50
-    },
-    {
-        name: 'tilefono',
-        label: 'Τηλέφωνο ',
-        required: true,
-        pattern: '^\\d{10}$',
-        type: 'tel',
-        title: 'Εισάγετε 10ψήφιο αριθμό τηλεφώνου'
     }
 ];
 

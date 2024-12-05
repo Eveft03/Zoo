@@ -94,38 +94,32 @@ try {
             $result = $stmt->get_result();
             break;
 
-        case 'Φροντιστές':
-            $totalRows = $db->query("SELECT COUNT(*) as count FROM FRONTISTIS")->fetch_assoc()['count'];
-            
-            $stmt = $db->prepare("
-                SELECT f.*, 
-                       GROUP_CONCAT(z.Onoma) as Ζώα_Φροντίδας
-                FROM FRONTISTIS f
-                LEFT JOIN FRONTIZEI fr ON f.ID = fr.ID
-                LEFT JOIN ZWO z ON fr.Kodikos = z.Kodikos
-                GROUP BY f.ID
-                LIMIT ? OFFSET ?
-            ");
-            $stmt->bind_param("ii", $limit, $offset);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            break;
+            case 'Φροντιστές':
+                $totalRows = $db->query("SELECT COUNT(*) as count FROM FRONTISTIS")->fetch_assoc()['count'];
+                
+                $stmt = $db->prepare("
+                    SELECT f.ID, f.Onoma, f.Eponymo
+                    FROM FRONTISTIS f
+                    ORDER BY f.ID
+                    LIMIT ? OFFSET ?
+                ");
+                $stmt->bind_param("ii", $limit, $offset);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                break;
 
-        case 'Προμηθευτές':
-            $totalRows = $db->query("SELECT COUNT(*) as count FROM PROMITHEUTIS")->fetch_assoc()['count'];
-            
-            $stmt = $db->prepare("
-                SELECT p.*,
-                       GROUP_CONCAT(t.Onoma) as Προϊόντα
-                FROM PROMITHEUTIS p
-                LEFT JOIN TROFIMO t ON p.AFM = t.AFM_PROMITHEUTI
-                GROUP BY p.AFM
-                LIMIT ? OFFSET ?
-            ");
-            $stmt->bind_param("ii", $limit, $offset);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            break;
+                case 'Προμηθευτές':
+                    $totalRows = $db->query("SELECT COUNT(*) as count FROM PROMITHEUTIS")->fetch_assoc()['count'];
+                    
+                    $stmt = $db->prepare("
+                        SELECT p.AFM, p.Onoma, p.Thlefono 
+                        FROM PROMITHEUTIS p
+                        LIMIT ? OFFSET ?
+                    ");
+                    $stmt->bind_param("ii", $limit, $offset);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                    break;
 
         default:
             throw new Exception("Άγνωστη ενότητα");
