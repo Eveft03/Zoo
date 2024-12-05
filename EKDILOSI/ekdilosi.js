@@ -7,57 +7,88 @@ const ekdilosiFields = [
     { name: 'titlos', label: 'Τίτλος', required: true, type: 'text' },
     { name: 'hmerominia', label: 'Ημερομηνία', required: true, type: 'date' },
     { name: 'ora', label: 'Ώρα', required: true, type: 'time' },
-    { name: 'xwros', label: 'Χώρος', required: true, type: 'text' },
-    { name: 'zwa', label: 'Συμμετέχοντα Ζώα', required: false, type: 'multiselect', dataSource: 'get_animals.php' }
+    { name: 'xwros', label: 'Χώρος', required: true, type: 'text' }
 ];
 
 function createEkdilosiForm(formType, data = null) {
     const form = document.createElement('form');
     form.className = 'entity-form';
     form.onsubmit = (e) => handleEkdilosiSubmit(e, formType);
-
+ 
     const title = document.createElement('h2');
     title.textContent = `${formType} Εκδήλωσης`;
     form.appendChild(title);
-
+ 
     if (formType === 'Επεξεργασία') {
-        // Add hidden fields for old values when editing
         const oldTitlos = document.createElement('input');
         oldTitlos.type = 'hidden';
         oldTitlos.name = 'old_titlos';
-        oldTitlos.value = data?.titlos || '';
+        oldTitlos.value = data.Titlos;
         form.appendChild(oldTitlos);
-
+ 
         const oldHmerominia = document.createElement('input');
         oldHmerominia.type = 'hidden';
         oldHmerominia.name = 'old_hmerominia';
-        oldHmerominia.value = data?.hmerominia || '';
+        oldHmerominia.value = data.Hmerominia;
         form.appendChild(oldHmerominia);
     }
-
+ 
     ekdilosiFields.forEach(field => {
-        const formGroup = createFormField(field, data?.[field.name]);
+        const formGroup = document.createElement('div');
+        formGroup.className = 'form-group';
+ 
+        const label = document.createElement('label');
+        label.htmlFor = field.name;
+        label.textContent = field.label;
+        if (field.required) label.classList.add('required');
+        formGroup.appendChild(label);
+ 
+        const input = document.createElement('input');
+        input.type = field.type;
+        input.name = field.name;
+        input.id = field.name;
+        input.required = field.required;
+ 
+        // Set initial values when editing
+        if (formType === 'Επεξεργασία') {
+            switch(field.name) {
+                case 'titlos':
+                    input.value = data.Titlos;
+                    break;
+                case 'hmerominia':
+                    input.value = data.Hmerominia;
+                    break;
+                case 'ora':
+                    input.value = data.Ora;
+                    break;
+                case 'xwros':
+                    input.value = data.Xwros;
+                    break;
+            }
+        }
+ 
+        formGroup.appendChild(input);
         form.appendChild(formGroup);
     });
-
+ 
     const buttonsDiv = document.createElement('div');
     buttonsDiv.className = 'form-buttons';
-
+ 
     const submitButton = document.createElement('button');
     submitButton.type = 'submit';
     submitButton.textContent = formType;
     buttonsDiv.appendChild(submitButton);
-
+ 
     const cancelButton = document.createElement('button');
     cancelButton.type = 'button';
     cancelButton.textContent = 'Ακύρωση';
     cancelButton.className = 'cancel-button';
     cancelButton.onclick = () => loadSection('Εκδηλώσεις');
     buttonsDiv.appendChild(cancelButton);
-
+ 
     form.appendChild(buttonsDiv);
     return form;
-}
+ }
 
 async function handleEkdilosiSubmit(event, formType) {
     event.preventDefault();

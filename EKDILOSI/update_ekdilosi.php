@@ -1,5 +1,5 @@
 <?php
-require_once 'db_connection.php';
+require_once '../db_connection.php';
 header('Content-Type: application/json; charset=utf-8');
 
 try {
@@ -33,9 +33,6 @@ try {
     }
 
     if (isset($_POST['ora']) && !empty($_POST['ora'])) {
-        if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $_POST['ora'])) {
-            throw new Exception("Μη έγκυρη μορφή ώρας");
-        }
         $updates[] = "Ora = ?";
         $types .= "s";
         $values[] = $_POST['ora'];
@@ -44,7 +41,7 @@ try {
     if (isset($_POST['xwros']) && !empty($_POST['xwros'])) {
         $updates[] = "Xwros = ?";
         $types .= "s";
-        $values[] = htmlspecialchars($_POST['xwros']);
+        $values[] = $_POST['xwros'];
     }
 
     if (empty($updates)) {
@@ -65,12 +62,8 @@ try {
         throw new Exception("Σφάλμα κατά την ενημέρωση της εκδήλωσης");
     }
 
-    // Update related records in SYMMETEXEI and APAITEI if the date changed
+    // Update APAITEI table if date changed
     if (isset($_POST['hmerominia']) && $_POST['hmerominia'] !== $_POST['old_hmerominia']) {
-        $stmt = $db->prepare("UPDATE SYMMETEXEI SET Hmerominia = ? WHERE Titlos = ? AND Hmerominia = ?");
-        $stmt->bind_param("sss", $_POST['hmerominia'], $_POST['titlos'], $_POST['old_hmerominia']);
-        $stmt->execute();
-
         $stmt = $db->prepare("UPDATE APAITEI SET Hmerominia = ? WHERE Titlos = ? AND Hmerominia = ?");
         $stmt->bind_param("sss", $_POST['hmerominia'], $_POST['titlos'], $_POST['old_hmerominia']);
         $stmt->execute();
