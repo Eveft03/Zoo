@@ -56,12 +56,23 @@ async function handleTamiasSubmit(event, formType) {
             },
             body: formData
         });
-  
-        const result = await response.json();
+        
+        const text = await response.text();
+        console.log('Raw response:', text);  // Εκτύπωσε την απάντηση για να δεις τι επιστρέφεται
+        
+        // Αν το text είναι έγκυρο JSON, συνέχισε με parse
+        let result;
+        try {
+            result = JSON.parse(text);
+        } catch (error) {
+            console.error('JSON parsing error:', error.message);
+            return;
+        }
         if (result.status === 'error') throw new Error(result.message);
-  
+        
         showMessage(result.message, false);
         loadSection('Ταμίες');
+        
     } catch (error) {
         showMessage(error.message, true);
     } finally {
@@ -77,7 +88,7 @@ async function handleTamiasDelete(data) {
    try {
        showLoading();
 
-       const response = await fetch('delete_tamia.php', {
+       const response = await fetch('./tamias/delete_tamia.php', {
            method: 'POST',
            headers: {
                'Content-Type': 'application/json',

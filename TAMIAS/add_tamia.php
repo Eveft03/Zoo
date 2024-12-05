@@ -1,4 +1,4 @@
-// add_tamias.php
+
 <?php
 require_once '../db_connection.php';
 header('Content-Type: application/json; charset=utf-8');
