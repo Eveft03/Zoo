@@ -47,7 +47,7 @@ async function handleFrontistisSubmit(event, formType) {
 
     try {
         const formData = new FormData(event.target);
-        const url = formType === 'Προσθήκη' ? 'frontistis/add_frontistis.php' : 'frontistis/update_frontistis.php';
+        const url = formType === 'Προσθήκη' ? './frontistis/add_frontisti.php' : './frontistis/update_frontisti.php';
 
         const response = await fetch(url, {
             method: 'POST',
@@ -78,18 +78,18 @@ async function handleFrontistisDelete(data) {
 
     try {
         showLoading();
-
-        const response = await fetch('frontistis/delete_frontistis.php', {
+        const response = await fetch('./frontistis/delete_frontisti.php', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify({ID: data.ID})
         });
 
         const result = await response.json();
-        if (result.status === 'error') throw new Error(result.message);
+        if (result.status === 'error') {
+            throw new Error(result.message);
+        }
 
         showMessage(result.message, false);
         await loadSection('Φροντιστές');
