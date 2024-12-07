@@ -5,7 +5,7 @@ const eisitirioFields = [
     { name: 'kodikos', label: 'Κωδικός', required: true, type: 'number', min: 1 },
     { name: 'hmerominia_ekdoshs', label: 'Ημερομηνία Έκδοσης', required: true, type: 'date' },
     { name: 'timi', label: 'Τιμή', required: true, type: 'number', min: 0, step: '0.01' },
-    { name: 'idTamia', label: 'ID Ταμία', required: false, type: 'number', min: 1 },
+    { name: 'idTamia', label: 'ID Ταμία', required: true, type: 'number', min: 1 },
     { name: 'email', label: 'Email Επισκέπτη', required: true, type: 'email' },
     { name: 'katigoria', label: 'Κατηγορία', required: true, type: 'select', options: ['Με εκδήλωση', 'Χωρίς εκδήλωση'] }
 ];

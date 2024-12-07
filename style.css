@@ -454,3 +454,11 @@ footer {
     gap: 8px;
     padding-right: 16px !important;
 }
+.required-select {
+    border: 1px solid #e74c3c !important;
+}
+
+.form-group input:required, 
+.form-group select:required {
+    border: 1px solid #e74c3c;
+}
