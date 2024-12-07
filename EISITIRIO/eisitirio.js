@@ -1,5 +1,5 @@
 import { loadSection, showMessage, showLoading, hideLoading } from '../script.js';
-import { createFormField } from '../ValidationFunctions.js';
+
 
 const eisitirioFields = [
     { name: 'kodikos', label: 'Κωδικός', required: true, type: 'number', min: 1 },

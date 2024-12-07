@@ -1,5 +1,5 @@
 import { loadSection, showMessage, showLoading, hideLoading } from '../script.js';
-import { createFormField } from '../ValidationFunctions.js';
+
 
 const tamiasFields = [
     { name: 'id', label: 'ID', required: true, type: 'number', min: 1 },
