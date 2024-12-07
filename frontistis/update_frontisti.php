@@ -5,9 +5,8 @@ header('Content-Type: application/json; charset=utf-8');
 try {
     $db = getDatabase();
     
-    // Validate required fields
-    if (!isset($_POST['id']) || empty($_POST['id'])) {
-        throw new Exception("Το ID είναι υποχρεωτικό");
+    if (!isset($_POST['id'])) {
+        throw new Exception("Απαιτείται το ID του φροντιστή");
     }
 
     $updates = [];
@@ -17,13 +16,13 @@ try {
     if (isset($_POST['onoma']) && !empty($_POST['onoma'])) {
         $updates[] = "Onoma = ?";
         $types .= "s";
-        $values[] = htmlspecialchars($_POST['onoma'], ENT_QUOTES, 'UTF-8');
+        $values[] = htmlspecialchars($_POST['onoma']);
     }
 
     if (isset($_POST['eponymo']) && !empty($_POST['eponymo'])) {
         $updates[] = "Eponymo = ?";
         $types .= "s";
-        $values[] = htmlspecialchars($_POST['eponymo'], ENT_QUOTES, 'UTF-8');
+        $values[] = htmlspecialchars($_POST['eponymo']);
     }
 
     if (empty($updates)) {
@@ -32,19 +31,10 @@ try {
 
     $db->beginTransaction();
 
-    // Check if frontistis exists
-    $stmt = $db->prepare("SELECT ID FROM FRONTISTIS WHERE ID = ?");
-    $stmt->bind_param("i", $_POST['id']);
-    $stmt->execute();
-    if ($stmt->get_result()->num_rows === 0) {
-        throw new Exception("Ο φροντιστής δεν βρέθηκε");
-    }
-
-    // Update frontistis
     $sql = "UPDATE FRONTISTIS SET " . implode(", ", $updates) . " WHERE ID = ?";
-    $types .= "i"; // Add type for ID in WHERE clause
+    $types .= "i";
     $values[] = $_POST['id'];
-    
+
     $stmt = $db->prepare($sql);
     $stmt->bind_param($types, ...$values);
     
@@ -52,17 +42,15 @@ try {
         throw new Exception("Σφάλμα κατά την ενημέρωση του φροντιστή");
     }
 
+    if ($stmt->affected_rows === 0) {
+        throw new Exception("Ο φροντιστής δεν βρέθηκε ή δεν έγιναν αλλαγές");
+    }
+
     $db->commit();
-    echo json_encode([
-        'status' => 'success',
-        'message' => 'Ο φροντιστής ενημερώθηκε επιτυχώς'
-    ], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['status' => 'success', 'message' => 'Ο φροντιστής ενημερώθηκε επιτυχώς']);
 
 } catch (Exception $e) {
     if (isset($db)) $db->rollback();
     http_response_code(400);
-    echo json_encode([
-        'status' => 'error',
-        'message' => $e->getMessage()
-    ], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }

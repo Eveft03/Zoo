@@ -1,4 +1,3 @@
-// frontistis/frontistis-operations.js
 import { loadSection, showMessage, showLoading, hideLoading } from '../script.js';
 import { createFormField } from '../ValidationFunctions.js';
 
@@ -17,8 +16,47 @@ function createFrontistisForm(formType, data = null) {
     title.textContent = `${formType} Φροντιστή`;
     form.appendChild(title);
 
+    if (formType === 'Επεξεργασία' && data) {
+        const originalId = document.createElement('input');
+        originalId.type = 'hidden';
+        originalId.name = 'original_id';
+        originalId.value = data.ID;
+        form.appendChild(originalId);
+    }
+
     frontistisFields.forEach(field => {
-        const formGroup = createFormField(field, data?.[field.name]);
+        const formGroup = document.createElement('div');
+        formGroup.className = 'form-group';
+
+        const label = document.createElement('label');
+        label.htmlFor = field.name;
+        label.textContent = field.label;
+        if (field.required) label.classList.add('required');
+        formGroup.appendChild(label);
+
+        const input = document.createElement('input');
+        input.type = field.type;
+        input.name = field.name;
+        input.id = field.name;
+        input.required = field.required;
+        if (field.min !== undefined) input.min = field.min;
+
+        if (data) {
+            switch(field.name) {
+                case 'id':
+                    input.value = data.ID;
+                    if (formType === 'Επεξεργασία') input.readOnly = true;
+                    break;
+                case 'onoma':
+                    input.value = data.Onoma;
+                    break;
+                case 'eponymo':
+                    input.value = data.Eponymo;
+                    break;
+            }
+        }
+
+        formGroup.appendChild(input);
         form.appendChild(formGroup);
     });
 
@@ -47,17 +85,14 @@ async function handleFrontistisSubmit(event, formType) {
 
     try {
         const formData = new FormData(event.target);
-        const url = formType === 'Προσθήκη' ? './frontistis/add_frontisti.php' : './frontistis/update_frontisti.php';
+        const url = `./frontistis/${formType === 'Προσθήκη' ? 'add' : 'update'}_frontisti.php`;
 
         const response = await fetch(url, {
             method: 'POST',
             body: formData
         });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Σφάλμα απόκρισης: ${errorText}`);
-        }
+        if (!response.ok) throw new Error('Network response was not ok');
 
         const result = await response.json();
         if (result.status === 'error') throw new Error(result.message);
@@ -83,13 +118,11 @@ async function handleFrontistisDelete(data) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ID: data.ID})
+            body: JSON.stringify(data)
         });
 
         const result = await response.json();
-        if (result.status === 'error') {
-            throw new Error(result.message);
-        }
+        if (result.status === 'error') throw new Error(result.message);
 
         showMessage(result.message, false);
         await loadSection('Φροντιστές');

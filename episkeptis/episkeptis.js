@@ -1,31 +1,25 @@
 import { loadSection, showMessage, showLoading, hideLoading } from '../script.js';
 import { createFormField } from '../ValidationFunctions.js';
 
-
 const episkeptisFields = [
     {
         name: 'email',
         label: 'Email',
         required: true,
         type: 'email',
-        pattern: '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}',
-        title: 'Εισάγετε έγκυρη διεύθυνση email'
+        pattern: '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}'
     },
     {
         name: 'onoma',
         label: 'Όνομα',
         required: true,
-        type: 'text',
-        minLength: 2,
-        maxLength: 50
+        type: 'text'
     },
     {
         name: 'eponymo',
         label: 'Επώνυμο',
         required: true,
-        type: 'text',
-        minLength: 2,
-        maxLength: 50
+        type: 'text'
     }
 ];
 
@@ -38,8 +32,47 @@ function createepiskeptisForm(formType, data = null) {
     title.textContent = `${formType} Επισκέπτη`;
     form.appendChild(title);
 
+    if (formType === 'Επεξεργασία' && data) {
+        const originalEmail = document.createElement('input');
+        originalEmail.type = 'hidden';
+        originalEmail.name = 'original_email';
+        originalEmail.value = data.Email;
+        form.appendChild(originalEmail);
+    }
+
     episkeptisFields.forEach(field => {
-        const formGroup = createFormField(field, data?.[field.name]);
+        const formGroup = document.createElement('div');
+        formGroup.className = 'form-group';
+
+        const label = document.createElement('label');
+        label.htmlFor = field.name;
+        label.textContent = field.label;
+        if (field.required) label.classList.add('required');
+        formGroup.appendChild(label);
+
+        const input = document.createElement('input');
+        input.type = field.type;
+        input.name = field.name;
+        input.id = field.name;
+        input.required = field.required;
+        if (field.pattern) input.pattern = field.pattern;
+
+        if (data) {
+            switch(field.name) {
+                case 'email':
+                    input.value = data.Email;
+                    if (formType === 'Επεξεργασία') input.readOnly = true;
+                    break;
+                case 'onoma':
+                    input.value = data.Onoma;
+                    break;
+                case 'eponymo':
+                    input.value = data.Eponymo;
+                    break;
+            }
+        }
+
+        formGroup.appendChild(input);
         form.appendChild(formGroup);
     });
 
@@ -68,17 +101,14 @@ async function handleepiskeptisSubmit(event, formType) {
 
     try {
         const formData = new FormData(event.target);
-        const url = formType === 'Προσθήκη' ? 'episkeptis/add_episkepti.php' : 'episkeptis/update_episkepti.php';
+        const url = `./episkeptis/${formType === 'Προσθήκη' ? 'add' : 'update'}_episkepti.php`;
 
         const response = await fetch(url, {
             method: 'POST',
             body: formData
         });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Σφάλμα απόκρισης: ${errorText}`);
-        }
+        if (!response.ok) throw new Error('Network response was not ok');
 
         const result = await response.json();
         if (result.status === 'error') throw new Error(result.message);
@@ -99,12 +129,10 @@ async function handleepiskeptisDelete(data) {
 
     try {
         showLoading();
-
-        const response = await fetch('episkeptis/delete_episkepti.php', {
+        const response = await fetch('./episkeptis/delete_episkepti.php', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(data)
         });

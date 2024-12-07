@@ -1,12 +1,10 @@
-
-
 import { loadSection, showMessage, showLoading, hideLoading } from '../script.js';
 import { createFormField } from '../ValidationFunctions.js';
 
 const eidosFields = [
     { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
-    { name: 'katigoria', label: 'Κατηγορία', required: true, type: 'text' },
-    { name: 'perigrafi', label: 'Περιγραφή', required: false, type: 'textarea' }
+    { name: 'katigoria', label: 'Κατηγορία', required: true, type: 'select', options: ['Θηλαστικά', 'Πουλιά', 'Ερπετά'] },
+    { name: 'perigrafi', label: 'Περιγραφή', required: true, type: 'textarea' }
 ];
 
 function createeidosForm(formType, data = null) {
@@ -18,8 +16,69 @@ function createeidosForm(formType, data = null) {
     title.textContent = `${formType} Είδους`;
     form.appendChild(title);
 
+    if (formType === 'Επεξεργασία' && data) {
+        const originalName = document.createElement('input');
+        originalName.type = 'hidden';
+        originalName.name = 'original_onoma';
+        originalName.value = data.Onoma;
+        form.appendChild(originalName);
+    }
+
     eidosFields.forEach(field => {
-        const formGroup = createFormField(field, data?.[field.name]);
+        const formGroup = document.createElement('div');
+        formGroup.className = 'form-group';
+
+        const label = document.createElement('label');
+        label.htmlFor = field.name;
+        label.textContent = field.label;
+        if (field.required) label.classList.add('required');
+        formGroup.appendChild(label);
+
+        if (field.type === 'textarea') {
+            const textarea = document.createElement('textarea');
+            textarea.name = field.name;
+            textarea.id = field.name;
+            textarea.required = field.required;
+            if (data) {
+                textarea.value = data.Perigrafi;
+            }
+            formGroup.appendChild(textarea);
+        } else if (field.type === 'select') {
+            const select = document.createElement('select');
+            select.name = field.name;
+            select.id = field.name;
+            select.required = field.required;
+
+            field.options.forEach(option => {
+                const opt = document.createElement('option');
+                opt.value = option;
+                opt.textContent = option;
+                if (data && data.Katigoria === option) {
+                    opt.selected = true;
+                }
+                select.appendChild(opt);
+            });
+
+            formGroup.appendChild(select);
+        } else {
+            const input = document.createElement('input');
+            input.type = field.type;
+            input.name = field.name;
+            input.id = field.name;
+            input.required = field.required;
+
+            if (data) {
+                if (field.name === 'onoma') {
+                    input.value = data.Onoma;
+                    if (formType === 'Επεξεργασία') {
+                        input.readOnly = true;
+                    }
+                }
+            }
+
+            formGroup.appendChild(input);
+        }
+
         form.appendChild(formGroup);
     });
 
@@ -45,33 +104,23 @@ function createeidosForm(formType, data = null) {
 async function handleeidosSubmit(event, formType) {
     event.preventDefault();
     showLoading();
- 
+
     try {
         const formData = new FormData(event.target);
-        const url = formType === 'Προσθήκη' ? 'eidos/add_eidos.php' : 'eidos/update_eidos.php';
- 
+        const url = `./eidos/${formType === 'Προσθήκη' ? 'add' : 'update'}_eidos.php`;
+
         const response = await fetch(url, {
             method: 'POST',
-            headers: {
-                'Accept': 'application/json'
-            },
             body: formData
         });
- 
-        const text = await response.text();
-        console.log('Server response:', text);
- 
-        let result;
-        try {
-            result = JSON.parse(text);
-        } catch (e) {
-            throw new Error('Μη έγκυρη απάντηση από τον server');
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
         }
- 
-        if (result.status === 'error') {
-            throw new Error(result.message);
-        }
- 
+
+        const result = await response.json();
+        if (result.status === 'error') throw new Error(result.message);
+
         showMessage(result.message, false);
         loadSection('Είδη');
     } catch (error) {
@@ -79,8 +128,7 @@ async function handleeidosSubmit(event, formType) {
     } finally {
         hideLoading();
     }
- }
-
+}
 async function handleeidosDelete(data) {
     if (!confirm('Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το είδος;')) {
         return;
@@ -88,18 +136,18 @@ async function handleeidosDelete(data) {
 
     try {
         showLoading();
-
-        const response = await fetch('eidos/delete_eidos.php', {
+        const response = await fetch('./eidos/delete_eidos.php', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(data)
         });
 
         const result = await response.json();
-        if (result.status === 'error') throw new Error(result.message);
+        if (result.status === 'error') {
+            throw new Error(result.message);
+        }
 
         showMessage(result.message, false);
         await loadSection('Είδη');

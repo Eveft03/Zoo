@@ -1,7 +1,6 @@
-// Import necessary functions
-
-import { showMessage, showLoading, hideLoading, loadSection } from '../script.js';
-
+// zwo.js
+import { loadSection, showMessage, showLoading, hideLoading } from '../script.js';
+import { createFormField } from '../ValidationFunctions.js';
 
 const zwoFields = [
     { name: 'kodikos', label: 'Κωδικός', required: true, pattern: '^Z\\d{6}$', type: 'text' },
@@ -18,6 +17,15 @@ function createZwoForm(formType, data = null) {
     const title = document.createElement('h2');
     title.textContent = `${formType} Ζώου`;
     form.appendChild(title);
+
+    // Add hidden field for original code when editing
+    if (formType === 'Επεξεργασία' && data) {
+        const originalCode = document.createElement('input');
+        originalCode.type = 'hidden';
+        originalCode.name = 'original_kodikos';
+        originalCode.value = data.Kodikos;
+        form.appendChild(originalCode);
+    }
 
     zwoFields.forEach(field => {
         const formGroup = document.createElement('div');
@@ -43,7 +51,7 @@ function createZwoForm(formType, data = null) {
                         const option = document.createElement('option');
                         option.value = s.Onoma;
                         option.textContent = s.Onoma;
-                        if (data && data[field.name] === s.Onoma) {
+                        if (data && data.Onoma_Eidous === s.Onoma) {
                             option.selected = true;
                         }
                         select.appendChild(option);
@@ -61,7 +69,25 @@ function createZwoForm(formType, data = null) {
             if (field.pattern) input.pattern = field.pattern;
             if (field.min !== undefined) input.min = field.min;
             if (field.max !== undefined) input.max = field.max;
-            if (data && data[field.name]) input.value = data[field.name];
+
+            // Set values when editing
+            if (data) {
+                switch(field.name) {
+                    case 'kodikos':
+                        input.value = data.Kodikos;
+                        if (formType === 'Επεξεργασία') {
+                            input.readOnly = true;
+                        }
+                        break;
+                    case 'onoma':
+                        input.value = data.Onoma;
+                        break;
+                    case 'etos_genesis':
+                        input.value = data.Etos_Genesis;
+                        break;
+                }
+            }
+
             formGroup.appendChild(input);
         }
 
@@ -97,25 +123,16 @@ async function handleZwoSubmit(event, formType) {
 
         const response = await fetch(url, {
             method: 'POST',
-            headers: {
-                'Accept': 'application/json'
-            },
             body: formData
         });
 
-        const text = await response.text();
-        console.log('Server response:', text);
-
-        let result;
-        try {
-            result = JSON.parse(text);
-        } catch (e) {
-            throw new Error('Μη έγκυρη απάντηση από τον server');
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Σφάλμα απόκρισης: ${errorText}`);
         }
 
-        if (result.status === 'error') {
-            throw new Error(result.message);
-        }
+        const result = await response.json();
+        if (result.status === 'error') throw new Error(result.message);
 
         showMessage(result.message, false);
         loadSection('Ζώα');
@@ -125,6 +142,7 @@ async function handleZwoSubmit(event, formType) {
         hideLoading();
     }
 }
+
 async function handleZwoDelete(data) {
     if (!confirm('Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το ζώο;')) {
         return;

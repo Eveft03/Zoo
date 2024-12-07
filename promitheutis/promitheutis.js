@@ -1,4 +1,3 @@
-
 import { loadSection, showMessage, showLoading, hideLoading } from '../script.js';
 import { createFormField } from '../ValidationFunctions.js';
 
@@ -17,8 +16,47 @@ function createpromitheutisForm(formType, data = null) {
     title.textContent = `${formType} Προμηθευτή`;
     form.appendChild(title);
 
+    if (formType === 'Επεξεργασία' && data) {
+        const originalAfm = document.createElement('input');
+        originalAfm.type = 'hidden';
+        originalAfm.name = 'original_afm';
+        originalAfm.value = data.AFM;
+        form.appendChild(originalAfm);
+    }
+
     promitheutisFields.forEach(field => {
-        const formGroup = createFormField(field, data?.[field.name]);
+        const formGroup = document.createElement('div');
+        formGroup.className = 'form-group';
+
+        const label = document.createElement('label');
+        label.htmlFor = field.name;
+        label.textContent = field.label;
+        if (field.required) label.classList.add('required');
+        formGroup.appendChild(label);
+
+        const input = document.createElement('input');
+        input.type = field.type;
+        input.name = field.name;
+        input.id = field.name;
+        input.required = field.required;
+        if (field.pattern) input.pattern = field.pattern;
+
+        if (data) {
+            switch(field.name) {
+                case 'afm':
+                    input.value = data.AFM;
+                    if (formType === 'Επεξεργασία') input.readOnly = true;
+                    break;
+                case 'onoma':
+                    input.value = data.Onoma;
+                    break;
+                case 'thlefono':
+                    input.value = data.Thlefono;
+                    break;
+            }
+        }
+
+        formGroup.appendChild(input);
         form.appendChild(formGroup);
     });
 
@@ -54,15 +92,10 @@ async function handlepromitheutisSubmit(event, formType) {
             body: formData
         });
 
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('Λάθος τύπος απάντησης από τον server');
-        }
+        if (!response.ok) throw new Error('Network response was not ok');
 
         const result = await response.json();
-        if (result.status === 'error') {
-            throw new Error(result.message);
-        }
+        if (result.status === 'error') throw new Error(result.message);
 
         showMessage(result.message, false);
         loadSection('Προμηθευτές');
@@ -72,6 +105,7 @@ async function handlepromitheutisSubmit(event, formType) {
         hideLoading();
     }
 }
+
 async function handlepromitheutisDelete(data) {
     if (!confirm('Είστε σίγουροι ότι θέλετε να διαγράψετε αυτόν τον προμηθευτή;')) {
         return;
@@ -79,12 +113,10 @@ async function handlepromitheutisDelete(data) {
 
     try {
         showLoading();
-
-        const response = await fetch('promitheutis/delete_promitheuti.php', {
+        const response = await fetch('./promitheutis/delete_promitheuti.php', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(data)
         });
