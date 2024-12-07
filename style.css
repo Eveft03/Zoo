@@ -92,7 +92,7 @@ main {
 }
 
 #content table th {
-    text-align: right !important;
+    text-align: left !important;
     padding: 12px 16px;
     background-color: #34495e;
     color: white;
@@ -102,7 +102,7 @@ main {
 }
 
 #content table td {
-    text-align: right !important;
+    text-align: left !important;
     padding: 12px 16px;
     border-bottom: 1px solid #e9ecef;
 }
@@ -125,28 +125,31 @@ main {
 
 .edit-button,
 .delete-button {
-    padding: 6px 12px;
+    padding: 8px 16px;
     border: none;
     border-radius: 4px;
     font-size: 0.9rem;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
+    min-width: 100px;
 }
 
 .edit-button {
     background-color: #3498db;
     color: white;
+    box-shadow: 0 2px 4px rgba(52, 152, 219, 0.2);
 }
 
 .delete-button {
     background-color: #e74c3c;
     color: white;
+    box-shadow: 0 2px 4px rgba(231, 76, 60, 0.2);
 }
 
 .edit-button:hover,
 .delete-button:hover {
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 /* Form styles */
@@ -204,14 +207,12 @@ main {
 .form-group select:valid:not(:placeholder-shown),
 .form-group textarea:valid:not(:placeholder-shown) {
     border-color: #2ecc71;
-    box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.2);
 }
 
 .form-group input:invalid:not(:placeholder-shown),
 .form-group select:invalid:not(:placeholder-shown),
 .form-group textarea:invalid:not(:placeholder-shown) {
     border-color: #e74c3c;
-    box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);
 }
 
 /* Remove default invalid styles on Firefox */
@@ -380,6 +381,32 @@ footer {
     margin-top: 2rem;
 }
 
+/* Add button styling */
+.add-button {
+    background-color: #3498db;
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.add-button:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+}
+
+/* Form textarea */
+.form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
 /* Animations */
 @keyframes slideIn {
     from {
@@ -435,45 +462,4 @@ footer {
     .form-buttons button {
         width: 100%;
     }
-}
-
-/* Table header and cell alignment */
-#content table th, 
-#content table td {
-    text-align: right !important;
-    padding: 12px 16px;
-}
-
-/* Action buttons column */
-.action-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    padding-right: 16px !important;
-}
-
-/* Add button styling */
-.add-button {
-    background-color: #3498db;
-    color: white;
-    padding: 0.8rem 1.5rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.add-button:hover {
-    background-color: #2980b9;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.15);
-}
-
-/* Form textarea */
-.form-group textarea {
-    min-height: 100px;
-    resize: vertical;
 }
