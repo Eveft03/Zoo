@@ -47,20 +47,22 @@ async function handlepromitheutisSubmit(event, formType) {
 
     try {
         const formData = new FormData(event.target);
-        const url = formType === 'Προσθήκη' ? 'promitheutis/add_promitheutis.php' : 'promitheutis/update_promitheutis.php';
+        const url = `./promitheutis/${formType === 'Προσθήκη' ? 'add' : 'update'}_promitheuti.php`;
 
         const response = await fetch(url, {
             method: 'POST',
             body: formData
         });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Σφάλμα απόκρισης: ${errorText}`);
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Λάθος τύπος απάντησης από τον server');
         }
 
         const result = await response.json();
-        if (result.status === 'error') throw new Error(result.message);
+        if (result.status === 'error') {
+            throw new Error(result.message);
+        }
 
         showMessage(result.message, false);
         loadSection('Προμηθευτές');
@@ -70,7 +72,6 @@ async function handlepromitheutisSubmit(event, formType) {
         hideLoading();
     }
 }
-
 async function handlepromitheutisDelete(data) {
     if (!confirm('Είστε σίγουροι ότι θέλετε να διαγράψετε αυτόν τον προμηθευτή;')) {
         return;
@@ -79,7 +80,7 @@ async function handlepromitheutisDelete(data) {
     try {
         showLoading();
 
-        const response = await fetch('promitheutis/delete_promitheutis.php', {
+        const response = await fetch('promitheutis/delete_promitheuti.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

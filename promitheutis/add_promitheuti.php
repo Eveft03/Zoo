@@ -1,6 +1,6 @@
-// add_promitheutis.php
 <?php
 require_once '../db_connection.php';
+
 header('Content-Type: application/json; charset=utf-8');
 
 try {
@@ -8,7 +8,7 @@ try {
     
     $required_fields = ['afm', 'onoma', 'thlefono'];
     foreach ($required_fields as $field) {
-        if (!isset($_POST[$field]) || empty($_POST[$field])) {
+        if (!isset($_POST[$field]) || empty(trim($_POST[$field]))) {
             throw new Exception("Το πεδίο $field είναι υποχρεωτικό");
         }
     }
@@ -18,7 +18,7 @@ try {
     }
 
     if (!preg_match('/^\d{10}$/', $_POST['thlefono'])) {
-        throw new Exception("Μη έγκυρος αριθμός τηλεφώνου");
+        throw new Exception("Το τηλέφωνο πρέπει να αποτελείται από 10 ψηφία");
     }
 
     $db->beginTransaction();
@@ -30,14 +30,10 @@ try {
         throw new Exception("Το ΑΦΜ υπάρχει ήδη");
     }
 
-    $stmt = $db->prepare("
-        INSERT INTO PROMITHEUTIS (AFM, Onoma, Thlefono)
-        VALUES (?, ?, ?)
-    ");
-    
+    $stmt = $db->prepare("INSERT INTO PROMITHEUTIS (AFM, Onoma, Thlefono) VALUES (?, ?, ?)");
     $stmt->bind_param("sss", 
         $_POST['afm'],
-        htmlspecialchars($_POST['onoma']),
+        $_POST['onoma'],
         $_POST['thlefono']
     );
     
@@ -46,11 +42,23 @@ try {
     }
 
     $db->commit();
-    echo json_encode(['status' => 'success', 'message' => 'Ο προμηθευτής προστέθηκε επιτυχώς']);
+
+    $response = [
+        'status' => 'success',
+        'message' => 'Ο προμηθευτής προστέθηκε επιτυχώς'
+    ];
+    
+    echo json_encode($response, JSON_UNESCAPED_UNICODE);
 
 } catch (Exception $e) {
-    if (isset($db)) $db->rollback();
+    if (isset($db)) {
+        $db->rollback();
+    }
+    
     http_response_code(400);
-    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+    echo json_encode([
+        'status' => 'error',
+        'message' => $e->getMessage()
+    ], JSON_UNESCAPED_UNICODE);
 }
 ?>
