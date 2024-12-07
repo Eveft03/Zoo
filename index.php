@@ -47,22 +47,20 @@ try {
             $result = $stmt->get_result();
             break;
 
-        case 'Εκδηλώσεις':
-            $totalRows = $db->query("SELECT COUNT(*) as count FROM EKDILOSI")->fetch_assoc()['count'];
-            
-            $stmt = $db->prepare("
-                SELECT e.*, GROUP_CONCAT(z.Onoma) as Συμμετέχοντα_Ζώα 
-                FROM EKDILOSI e 
-                LEFT JOIN SYMMETEXEI s ON e.Titlos = s.Titlos AND e.Hmerominia = s.Hmerominia 
-                LEFT JOIN ZWO z ON s.Kodikos = z.Kodikos 
-                GROUP BY e.Titlos, e.Hmerominia 
-                LIMIT ? OFFSET ?
-            ");
-            $stmt->bind_param("ii", $limit, $offset);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            break;
-
+            case 'Εκδηλώσεις':
+                $totalRows = $db->query("SELECT COUNT(*) as count FROM EKDILOSI")->fetch_assoc()['count'];
+                
+                $stmt = $db->prepare("
+                    SELECT Titlos, Hmerominia, Ora, Xwros
+                    FROM EKDILOSI 
+                    ORDER BY Hmerominia DESC, Ora
+                    LIMIT ? OFFSET ?
+                ");
+                $stmt->bind_param("ii", $limit, $offset);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                break;
+                
             case 'Εισιτήρια':
                 $totalRows = $db->query("SELECT COUNT(*) as count FROM EISITIRIO")->fetch_assoc()['count'];
                 
