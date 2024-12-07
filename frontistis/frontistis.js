@@ -1,5 +1,5 @@
 import { loadSection, showMessage, showLoading, hideLoading } from '../script.js';
-import { createFormField } from '../ValidationFunctions.js';
+import { validators, validateForm, createFormField, setupFormValidation } from '../ValidationFunctions.js';
 
 const frontistisFields = [
     { name: 'id', label: 'ID', required: true, type: 'number', min: 1 },
@@ -76,6 +76,7 @@ function createFrontistisForm(formType, data = null) {
     buttonsDiv.appendChild(cancelButton);
 
     form.appendChild(buttonsDiv);
+    setupFormValidation(form); 
     return form;
 }
 

@@ -170,6 +170,7 @@ main {
 
 .form-group {
     margin-bottom: 1.5rem;
+    position: relative;
 }
 
 .form-group label {
@@ -181,20 +182,43 @@ main {
 }
 
 .form-group input,
-.form-group select {
+.form-group select,
+.form-group textarea {
     width: 100%;
     padding: 0.8rem;
     border: 2px solid #e2e8f0;
     border-radius: 6px;
     font-size: 1rem;
-    transition: border-color 0.2s ease;
+    transition: all 0.2s ease;
 }
 
 .form-group input:focus,
-.form-group select:focus {
-    border-color: #3498db;
+.form-group select:focus,
+.form-group textarea:focus {
     outline: none;
+    border-color: #3498db;
     box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+.form-group input:valid:not([type="submit"]):not(:placeholder-shown),
+.form-group select:valid:not(:placeholder-shown),
+.form-group textarea:valid:not(:placeholder-shown) {
+    border-color: #2ecc71;
+    box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.2);
+}
+
+.form-group input:invalid:not(:placeholder-shown),
+.form-group select:invalid:not(:placeholder-shown),
+.form-group textarea:invalid:not(:placeholder-shown) {
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);
+}
+
+/* Remove default invalid styles on Firefox */
+.form-group input:invalid,
+.form-group select:invalid,
+.form-group textarea:invalid {
+    box-shadow: none;
 }
 
 /* Form validation */
@@ -204,14 +228,12 @@ main {
     margin-left: 4px;
 }
 
-.form-group input:invalid {
-    border-color: #e74c3c;
-}
-
 .form-group .error-message {
     color: #e74c3c;
     font-size: 0.8rem;
     margin-top: 0.4rem;
+    position: absolute;
+    bottom: -1.2rem;
 }
 
 /* Form buttons */
@@ -243,10 +265,31 @@ main {
 
 .form-buttons button[type="submit"]:hover {
     background-color: #2980b9;
+    transform: translateY(-1px);
 }
 
 .form-buttons .cancel-button:hover {
     background-color: #c0392b;
+    transform: translateY(-1px);
+}
+
+/* Select styles */
+.form-group select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232c3e50' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    background-size: 1em;
+    padding-right: 2.5rem;
+}
+
+/* Disabled state */
+.form-group input:disabled,
+.form-group select:disabled,
+.form-group textarea:disabled {
+    background-color: #f7f7f7;
+    cursor: not-allowed;
+    opacity: 0.7;
 }
 
 /* Messages */
@@ -315,7 +358,7 @@ main {
 }
 
 .pagination-info {
-     text-align: right;
+    text-align: right;
     color: #666;
     margin: 10px 0;
     font-size: 0.9rem;
@@ -393,10 +436,20 @@ footer {
         width: 100%;
     }
 }
-/* Στυλ ονόματος ζώου */
-#content table td:nth-child(2) {
-    white-space: nowrap;
-    text-align: right;
+
+/* Table header and cell alignment */
+#content table th, 
+#content table td {
+    text-align: right !important;
+    padding: 12px 16px;
+}
+
+/* Action buttons column */
+.action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-right: 16px !important;
 }
 
 /* Add button styling */
@@ -419,46 +472,8 @@ footer {
     box-shadow: 0 4px 6px rgba(0,0,0,0.15);
 }
 
-/* Table container adjustments */
-.table-container {
-    position: relative;
-    width: 100%;
-    overflow-x: auto;
-    padding-right: 130px; /* Προσθέστε padding για να υπάρχει χώρος για την απόλυτη τοποθέτηση */
-}
-
-/* Pagination info adjustment */
-.pagination-info {
-    position: absolute;
-    right: -50px; /* Μετακινούμε ακόμα πιο δεξιά */
-    top: -10px; /* Διατηρούμε την κατακόρυφη θέση */
-    color: #666;
-    font-size: 0.9rem;
-    white-space: nowrap;
-    padding: 10px;
-    background: #fff;
-    z-index: 10;
-}
-
-/* Table header and cell alignment */
-#content table th, 
-#content table td {
-    text-align: right !important;
-    padding: 12px 16px;
-}
-
-/* Action buttons column */
-.action-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    padding-right: 16px !important;
-}
-.required-select {
-    border: 1px solid #e74c3c !important;
-}
-
-.form-group input:required, 
-.form-group select:required {
-    border: 1px solid #e74c3c;
+/* Form textarea */
+.form-group textarea {
+    min-height: 100px;
+    resize: vertical;
 }

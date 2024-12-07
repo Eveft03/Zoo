@@ -1,5 +1,5 @@
 import { loadSection, showMessage, showLoading, hideLoading } from '../script.js';
-
+import { validators, validateForm, createFormField, setupFormValidation } from '../ValidationFunctions.js';
 
 const eidosFields = [
     { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
@@ -98,6 +98,7 @@ function createeidosForm(formType, data = null) {
     buttonsDiv.appendChild(cancelButton);
 
     form.appendChild(buttonsDiv);
+    setupFormValidation(form); 
     return form;
 }
 

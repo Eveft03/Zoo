@@ -1,7 +1,7 @@
 // ekdilosi/ekdilosi-operations.js
 
 import { loadSection, showMessage, showLoading, hideLoading } from '../script.js';
-
+import { validators, validateForm, createFormField, setupFormValidation } from '../ValidationFunctions.js';
 
 const ekdilosiFields = [
     { name: 'titlos', label: 'Τίτλος', required: true, type: 'text' },
@@ -87,6 +87,7 @@ function createEkdilosiForm(formType, data = null) {
     buttonsDiv.appendChild(cancelButton);
  
     form.appendChild(buttonsDiv);
+    setupFormValidation(form); 
     return form;
  }
 

@@ -64,7 +64,6 @@ function validateForm(formData, fields) {
     return errors;
 }
 
-// Add this to all form submit handlers
 async function handleSubmit(event, formType, endpoint, fields) {
     event.preventDefault();
     const formData = new FormData(event.target);
@@ -100,7 +99,7 @@ async function handleSubmit(event, formType, endpoint, fields) {
     }
 }
 
-export function createFormField(field, value = null) {
+function createFormField(field, value = null) {
     const formGroup = document.createElement('div');
     formGroup.className = 'form-group';
 
@@ -127,12 +126,20 @@ export function createFormField(field, value = null) {
         }
         
         formGroup.appendChild(select);
+    } else if (field.type === 'textarea') {
+        const textarea = document.createElement('textarea');
+        textarea.name = field.name;
+        textarea.id = field.name;
+        textarea.required = field.required;
+        if (value) textarea.value = value;
+        formGroup.appendChild(textarea);
     } else {
         const input = document.createElement('input');
         input.type = field.type;
         input.name = field.name;
         input.id = field.name;
         input.required = field.required;
+        input.placeholder = ' ';
         if (field.pattern) input.pattern = field.pattern;
         if (field.min !== undefined) input.min = field.min;
         if (field.max !== undefined) input.max = field.max;
@@ -143,4 +150,32 @@ export function createFormField(field, value = null) {
     return formGroup;
 }
 
-export { validators, validateForm, handleSubmit };
+function setupFormValidation(form) {
+    const inputs = form.querySelectorAll('input, select, textarea');
+    
+    inputs.forEach(input => {
+        if (input.type !== 'select') {
+            input.placeholder = ' ';
+        }
+
+        input.addEventListener('input', () => validateInput(input));
+        input.addEventListener('blur', () => validateInput(input));
+    });
+}
+
+function validateInput(input) {
+    if (input.validity.valid) {
+        input.style.borderColor = '#3498db';
+        input.style.boxShadow = '0 0 0 2px rgba(52, 152, 219, 0.2)';
+        
+        if (input.pattern && new RegExp(input.pattern).test(input.value)) {
+            input.style.borderColor = '#2ecc71';
+            input.style.boxShadow = '0 0 0 2px rgba(46, 204, 113, 0.2)';
+        }
+    } else {
+        input.style.borderColor = '#e74c3c';
+        input.style.boxShadow = '0 0 0 2px rgba(231, 76, 60, 0.2)';
+    }
+}
+
+export { validators, validateForm, handleSubmit, createFormField, setupFormValidation };

@@ -1,5 +1,5 @@
 import { loadSection, showMessage, showLoading, hideLoading } from '../script.js';
-
+import { validators, validateForm, createFormField, setupFormValidation } from '../ValidationFunctions.js';
 
 const eisitirioFields = [
     { name: 'kodikos', label: 'Κωδικός', required: true, type: 'number', min: 1 },
@@ -113,6 +113,7 @@ function createEisitirioForm(formType, data = null) {
     buttonsDiv.appendChild(cancelButton);
 
     form.appendChild(buttonsDiv);
+    setupFormValidation(form); 
     return form;
 }
 
