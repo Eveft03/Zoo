@@ -151,7 +151,7 @@ function displayData(section, data) {
             headerRow.appendChild(th);
         });
         const actionsHeader = document.createElement('th');
-        actionsHeader.textContent = 'Ενέργειες';
+        actionsHeader.textContent = 'Energies';
         headerRow.appendChild(actionsHeader);
         thead.appendChild(headerRow);
 
