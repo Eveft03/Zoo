@@ -114,6 +114,18 @@ main {
 #content table tr:hover {
     background-color: #f8f9fa;
 }
+/* Column alignment for Actions */
+#content table th:last-child,
+#content table td:last-child {
+    text-align: right !important;
+    padding-right: 24px;
+}
+
+/* Action buttons spacing */
+.action-buttons {
+    justify-content: flex-end;
+    min-width: 180px;
+}
 
 /* Action buttons */
 .action-buttons {
