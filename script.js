@@ -8,45 +8,25 @@ import { createEkdilosiForm, handleEkdilosiDelete } from './ekdilosi/ekdilosi.js
 import { createeidosForm, handleeidosDelete } from './eidos/eidos.js';
 import { createpromitheutisForm, handlepromitheutisDelete } from './promitheutis/promitheutis.js';
 
-async function loadData(section, page = 1) {
-    try {
-        // Χρήση encodeURIComponent για σωστή κωδικοποίηση
-        const encodedSection = encodeURIComponent(section);
-        
-        // Προσθήκη debug logs
-        console.log('Requesting section:', section);
-        console.log('Encoded section:', encodedSection);
-        
-        // Αλλαγή στο fetch request
-        const response = await fetch(`index.php?section=${encodedSection}&page=${page}`, {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
-        
-        // Debug response
-        console.log('Response status:', response.status);
-        const responseText = await response.text();
-        console.log('Response text:', responseText);
-        
-        try {
-            // Προσπάθεια parse του JSON
-            const data = JSON.parse(responseText);
-            if (data.status === 'error') {
-                throw new Error(data.message);
-            }
-            return data;
-        } catch (parseError) {
-            console.error('JSON parse error:', parseError);
-            throw new Error(`Invalid JSON response: ${responseText}`);
-        }
-        
-    } catch (error) {
-        console.error('Error in loadData:', error);
-        throw error;
-    }
+export async function loadData(section, page = 1) {
+   try {
+       const encodedSection = encodeURIComponent(section);
+       const response = await fetch(`index.php?section=${encodedSection}&page=${page}`);
+       
+       if (!response.ok) {
+           throw new Error('Network response was not ok');
+       }
+       
+       const data = await response.json();
+       if (data.status === 'error') {
+           throw new Error(data.message);
+       }
+       
+       return data;
+   } catch (error) {
+       console.error('Error:', error);
+       throw error;
+   }
 }
 
 export function showForm(formType, section, data = null) {
@@ -87,41 +67,25 @@ export function showForm(formType, section, data = null) {
 }
 
 export async function handleDelete(section, data) {
-   try {
-       if(!confirm('Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το στοιχείο;')) {
-           return;
-       }
-
-       showLoading();
-       
-       const response = await fetch(`./${section.toLowerCase()}/delete_${section.toLowerCase()}.php`, {
-           method: 'POST',
-           headers: {
-               'Content-Type': 'application/json',
-               'Accept': 'application/json',
-               'X-Requested-With': 'XMLHttpRequest'
-           },
-           body: JSON.stringify(data)
-       });
-
-       if (!response.ok) {
-           const errorText = await response.text();
-           console.error('Server error:', errorText);
-           throw new Error(`Server error: ${errorText}`);
-       }
-
-       const result = await response.json();
-       if (result.status === 'error') {
-           throw new Error(result.message);
-       }
-
-       showMessage(result.message, false);
-       await loadSection(section);
-   } catch (error) {
-       console.error('Error:', error);
-       showMessage(error.message, true);
-   } finally {
-       hideLoading();
+   switch (section) {
+       case 'Ζώα':
+           return handleZwoDelete(data);
+       case 'Ταμίες':
+           return handleTamiasDelete(data);
+       case 'Φροντιστές':
+           return handleFrontistisDelete(data);
+       case 'Επισκέπτες':
+           return handleepiskeptisDelete(data);
+       case 'Εισιτήρια':
+           return handleEisitirioDelete(data);
+       case 'Εκδηλώσεις':
+           return handleEkdilosiDelete(data);
+       case 'Είδη':
+           return handleeidosDelete(data);
+       case 'Προμηθευτές':
+           return handlepromitheutisDelete(data);
+       default:
+           throw new Error('Άγνωστη ενότητα');
    }
 }
 
@@ -164,6 +128,7 @@ function displayData(section, data) {
    const contentElement = document.getElementById('content');
    contentElement.innerHTML = '';
 
+   // Add Button
    const addButton = document.createElement('button');
    addButton.textContent = `Προσθήκη ${section}`;
    addButton.className = 'add-button';
@@ -175,6 +140,7 @@ function displayData(section, data) {
        const thead = document.createElement('thead');
        const tbody = document.createElement('tbody');
 
+       // Headers
        const headerRow = document.createElement('tr');
        Object.keys(data.data[0]).forEach(key => {
            const th = document.createElement('th');
@@ -186,6 +152,7 @@ function displayData(section, data) {
        headerRow.appendChild(actionsHeader);
        thead.appendChild(headerRow);
 
+       // Data rows
        data.data.forEach(row => {
            const tr = document.createElement('tr');
            Object.values(row).forEach(value => {
@@ -217,6 +184,7 @@ function displayData(section, data) {
        table.appendChild(tbody);
        contentElement.appendChild(table);
 
+       // Pagination
        if (data.pagination) {
            const paginationDiv = document.createElement('div');
            paginationDiv.className = 'pagination';
@@ -266,10 +234,12 @@ document.addEventListener('DOMContentLoaded', () => {
            const section = e.target.textContent;
            loadSection(section);
 
+           // Update active link
            links.forEach(l => l.classList.remove('active'));
            e.target.classList.add('active');
        });
    });
 
+   // Load default section
    loadSection('Ζώα');
 });
