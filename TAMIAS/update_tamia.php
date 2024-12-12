@@ -11,7 +11,13 @@ try {
     if (!isset($_POST['id'])) {
         throw new Exception("Απαιτείται το ID του ταμία");
     }
-
+     // Πρόσθεσε τον έλεγχο ύπαρξης εδώ
+     $checkStmt = $db->prepare("SELECT 1 FROM TAMIAS WHERE ID = ?");
+     $checkStmt->bind_param("i", $_POST['id']);
+     $checkStmt->execute();
+     if ($checkStmt->get_result()->num_rows === 0) {
+         throw new Exception("Ο ταμίας δεν βρέθηκε");
+     }
     $updates = [];
     $types = "";
     $values = [];

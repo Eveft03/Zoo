@@ -11,7 +11,12 @@ try {
     if (!isset($_POST['kodikos'])) {
         throw new Exception("Απαιτείται ο κωδικός του ζώου");
     }
-
+    $checkStmt = $db->prepare("SELECT 1 FROM ZWO WHERE Kodikos = ?");
+    $checkStmt->bind_param("s", $_POST['kodikos']);
+    $checkStmt->execute();
+    if ($checkStmt->get_result()->num_rows === 0) {
+    throw new Exception("Το ζώο δεν βρέθηκε");
+}
     $updates = [];
     $types = "";
     $values = [];

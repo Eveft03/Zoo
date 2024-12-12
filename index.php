@@ -144,7 +144,7 @@ try {
    echo json_encode($response, JSON_UNESCAPED_UNICODE);
 
 } catch (Exception $e) {
-   error_log("Error: " . $e->getMessage());
+    error_log($e->getMessage()); // Προσθήκη logging
    http_response_code(500);
    echo json_encode([
        'status' => 'error',

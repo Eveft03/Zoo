@@ -10,64 +10,71 @@ const validators = {
     caretakerId: (value) => /^FR\d{3}$/.test(value),
     cashierId: (value) => /^TM\d{3}$/.test(value),
     ticketCode: (value) => /^\d{5}$/.test(value),
+    zwoCode: (value) => /^Z\d{6}$/.test(value),
+    speciesName: (value) => /^[Α-Ωα-ω\s]{2,50}$/.test(value),
+    year: (value) => {
+        const year = parseInt(value);
+        return year >= 1900 && year <= new Date().getFullYear();
+
+    }
 };
 
-function validateForm(formData, fields) {
-    const errors = [];
-    
-    fields.forEach(field => {
-        const value = formData.get(field.name);
-        
-        if (field.required && !validators.required(value)) {
-            errors.push(`Το πεδίο ${field.label} είναι υποχρεωτικό`);
-            return;
-        }
+    function validateForm(formData, fields) {
+        const errors = [];
 
-        if (value) {
-            switch (field.type) {
-                case 'email':
-                    if (!validators.email(value)) {
-                        errors.push('Μη έγκυρη διεύθυνση email');
-                    }
-                    break;
-                case 'tel':
-                    if (!validators.phone(value)) {
-                        errors.push('Μη έγκυρος αριθμός τηλεφώνου');
-                    }
-                    break;
-                case 'number':
-                    if (!validators.numeric(value)) {
-                        errors.push(`Το πεδίο ${field.label} πρέπει να είναι θετικός αριθμός`);
-                    }
-                    break;
-                case 'date':
-                    if (!validators.date(value)) {
-                        errors.push('Μη έγκυρη ημερομηνία');
-                    }
-                    break;
-                case 'time':
-                    if (!validators.time(value)) {
-                        errors.push('Μη έγκυρη ώρα');
-                    }
-                    break;
-            }
+fields.forEach(field => {
+    const value = formData.get(field.name);
 
-            if (field.pattern) {
-                const regex = new RegExp(field.pattern);
-                if (!regex.test(value)) {
-                    errors.push(`Μη έγκυρη μορφή για το πεδίο ${field.label}`);
+    if (field.required && !validators.required(value)) {
+        errors.push(`Το πεδίο ${field.label} είναι υποχρεωτικό`);
+        return;
+    }
+
+    if (value) {
+        switch (field.type) {
+            case 'email':
+                if (!validators.email(value)) {
+                    errors.push('Μη έγκυρη διεύθυνση email');
                 }
+                break;
+            case 'tel':
+                if (!validators.phone(value)) {
+                    errors.push('Μη έγκυρος αριθμός τηλεφώνου');
+                }
+                break;
+            case 'number':
+                if (!validators.numeric(value)) {
+                    errors.push(`Το πεδίο ${field.label} πρέπει να είναι θετικός αριθμός`);
+                }
+                break;
+            case 'date':
+                if (!validators.date(value)) {
+                    errors.push('Μη έγκυρη ημερομηνία');
+                }
+                break;
+            case 'time':
+                if (!validators.time(value)) {
+                    errors.push('Μη έγκυρη ώρα');
+                }
+                break;
+        }
+
+        if (field.pattern) {
+            const regex = new RegExp(field.pattern);
+            if (!regex.test(value)) {
+                errors.push(`Μη έγκυρη μορφή για το πεδίο ${field.label}`);
             }
         }
-    });
+    }
+});
 
-    return errors;
+return errors;
 }
 
 async function handleSubmit(event, formType, endpoint, fields) {
     event.preventDefault();
     const formData = new FormData(event.target);
-    
+
     const errors = validateForm(formData, fields);
     if (errors.length > 0) {
         showMessage(errors.join('\n'), true);
@@ -114,7 +121,7 @@ function createFormField(field, value = null) {
         select.name = field.name;
         select.id = field.name;
         select.required = field.required;
-        
+
         if (field.options) {
             field.options.forEach(option => {
                 const opt = document.createElement('option');
@@ -124,7 +131,7 @@ function createFormField(field, value = null) {
                 select.appendChild(opt);
             });
         }
-        
+
         formGroup.appendChild(select);
     } else if (field.type === 'textarea') {
         const textarea = document.createElement('textarea');
@@ -152,7 +159,7 @@ function createFormField(field, value = null) {
 
 function setupFormValidation(form) {
     const inputs = form.querySelectorAll('input, select, textarea');
-    
+
     inputs.forEach(input => {
         if (input.type !== 'select') {
             input.placeholder = ' ';
@@ -167,7 +174,7 @@ function validateInput(input) {
     if (input.validity.valid) {
         input.style.borderColor = '#3498db';
         input.style.boxShadow = '0 0 0 2px rgba(52, 152, 219, 0.2)';
-        
+
         if (input.pattern && new RegExp(input.pattern).test(input.value)) {
             input.style.borderColor = '#2ecc71';
             input.style.boxShadow = '0 0 0 2px rgba(46, 204, 113, 0.2)';

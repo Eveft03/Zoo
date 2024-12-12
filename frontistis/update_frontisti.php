@@ -11,6 +11,12 @@ try {
     if (!isset($_POST['id'])) {
         throw new Exception("Απαιτείται το ID του φροντιστή");
     }
+    $checkStmt = $db->prepare("SELECT 1 FROM FRONTISTIS WHERE ID = ?");
+    $checkStmt->bind_param("i", $_POST['id']); 
+    $checkStmt->execute();
+    if ($checkStmt->get_result()->num_rows === 0) {
+    throw new Exception("Ο φροντιστής δεν βρέθηκε");
+}
 
     $updates = [];
     $types = "";

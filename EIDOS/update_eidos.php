@@ -11,6 +11,12 @@ try {
     if (!isset($_POST['onoma'])) {
         throw new Exception("Το όνομα είναι υποχρεωτικό");
     }
+    $checkStmt = $db->prepare("SELECT 1 FROM EIDOS WHERE Onoma = ?");
+    $checkStmt->bind_param("s", $_POST['onoma']);
+    $checkStmt->execute();
+    if ($checkStmt->get_result()->num_rows === 0) {
+    throw new Exception("Το είδος δεν βρέθηκε");
+}
 
     $updates = [];
     $types = "";

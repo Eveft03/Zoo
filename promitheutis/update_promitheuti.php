@@ -11,6 +11,12 @@ try {
     if (!isset($_POST['afm'])) {
         throw new Exception("Απαιτείται το ΑΦΜ του προμηθευτή");
     }
+    $checkStmt = $db->prepare("SELECT 1 FROM PROMITHEUTIS WHERE AFM = ?");
+    $checkStmt->bind_param("s", $_POST['afm']);
+    $checkStmt->execute();
+    if ($checkStmt->get_result()->num_rows === 0) {
+   throw new Exception("Ο προμηθευτής δεν βρέθηκε");
+}
 
     $updates = [];
     $types = "";

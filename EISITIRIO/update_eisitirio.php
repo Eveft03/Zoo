@@ -11,6 +11,12 @@ try {
     if (!isset($_POST['kodikos']) || !isset($_POST['hmerominia_ekdoshs'])) {
         throw new Exception("Απαιτούνται τα στοιχεία του εισιτηρίου");
     }
+    $checkStmt = $db->prepare("SELECT 1 FROM EISITIRIO WHERE Kodikos = ? AND Hmerominia_Ekdoshs = ?"); 
+    $checkStmt->bind_param("is", $_POST['kodikos'], $_POST['hmerominia_ekdoshs']);
+    $checkStmt->execute();
+    if ($checkStmt->get_result()->num_rows === 0) {
+   throw new Exception("Το εισιτήριο δεν βρέθηκε");
+}
 
     $updates = [];
     $types = "";

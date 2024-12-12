@@ -1,6 +1,6 @@
 <?php
 class Database {
-    private $host = "localhost";
+    private $host = "lessons.dcie.teiemt.gr";
     private $username = "student_2410";
     private $password = "pass2410";
     private $database = "ZWOLOGIKOS_KHPOS";

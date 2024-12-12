@@ -11,6 +11,12 @@ try {
     if (!isset($_POST['titlos'], $_POST['old_hmerominia'])) {
         throw new Exception("Απαιτούνται τα στοιχεία της εκδήλωσης");
     }
+    $checkStmt = $db->prepare("SELECT 1 FROM EKDILOSI WHERE Titlos = ? AND Hmerominia = ?");
+    $checkStmt->bind_param("ss", $_POST['titlos'], $_POST['old_hmerominia']);
+    $checkStmt->execute();
+    if ($checkStmt->get_result()->num_rows === 0) {
+   throw new Exception("Η εκδήλωση δεν βρέθηκε");
+}
 
     $updates = [];
     $types = "";

@@ -11,6 +11,12 @@ try {
     if (!isset($_POST['email'])) {
         throw new Exception("Απαιτείται το email του επισκέπτη");
     }
+    $checkStmt = $db->prepare("SELECT 1 FROM EPISKEPTIS WHERE Email = ?");
+    $checkStmt->bind_param("s", $_POST['email']);
+    $checkStmt->execute();
+    if ($checkStmt->get_result()->num_rows === 0) {
+   throw new Exception("Ο επισκέπτης δεν βρέθηκε"); 
+}
 
     $updates = [];
     $types = "";
