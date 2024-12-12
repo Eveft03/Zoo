@@ -8,27 +8,31 @@ import { createEkdilosiForm, handleEkdilosiDelete } from './ekdilosi/ekdilosi.js
 import { createeidosForm, handleeidosDelete } from './eidos/eidos.js';
 import { createpromitheutisForm, handlepromitheutisDelete } from './promitheutis/promitheutis.js';
 
+// script.js
 export async function loadData(section, page = 1) {
     try {
-        const encodedSection = encodeURIComponent(section);
-        const response = await fetch(`index.php?section=${encodedSection}&page=${page}`);
+        const url = new URL('db.php', window.location.href);
+        url.searchParams.append('section', section);
+        url.searchParams.append('page', page.toString());
+
+        const response = await fetch(url, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json; charset=utf-8'
+            }
+        });
 
         if (!response.ok) {
-            throw new Error('Network response was not ok');
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
-        if (data.status === 'error') {
-            throw new Error(data.message);
-        }
-
         return data;
     } catch (error) {
         console.error('Error:', error);
         throw error;
     }
 }
-
 export function showForm(formType, section, data = null) {
     const contentElement = document.getElementById('content');
     contentElement.innerHTML = '';

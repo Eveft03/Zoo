@@ -1,18 +1,15 @@
 <?php
+require_once 'db_connection.php';
 header('Content-Type: application/json; charset=utf-8');
-ini_set('display_errors', 0);
-error_reporting(0);
-mb_internal_encoding('UTF-8');
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
 try {
    $db = getDatabase();
-   $section = $_GET['section'] ?? '';
+   $section = isset($_GET['section']) ? htmlspecialchars($_GET['section'], ENT_QUOTES, 'UTF-8') : '';
    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
    $limit = 10;
    $offset = ($page - 1) * $limit;
-
-   error_log("Section: " . $section);
-   error_log("Page: " . $page);
 
    $response = [
        'status' => 'success',
@@ -21,26 +18,25 @@ try {
        'message' => ''
    ];
 
-   switch($section) { 
-
-   case 'Ζώα':
-       $totalRows = $db->query("SELECT COUNT(*) as count FROM ZWO")->fetch_assoc()['count'];
-       
-       $stmt = $db->prepare("
-           SELECT 
-               z.Kodikos,
-               z.Onoma,
-               z.Etos_Genesis,
-               z.Onoma_Eidous
-           FROM ZWO z
-           ORDER BY z.Kodikos
-           LIMIT ? OFFSET ?
-       ");
-       
-       $stmt->bind_param("ii", $limit, $offset);
-       $stmt->execute();
-       $result = $stmt->get_result();
-       break;
+   switch($section) {
+       case 'Ζώα':
+           $totalRows = $db->query("SELECT COUNT(*) as count FROM ZWO")->fetch_assoc()['count'];
+           
+           $stmt = $db->prepare("
+               SELECT 
+                   z.Kodikos,
+                   z.Onoma,
+                   z.Etos_Genesis,
+                   z.Onoma_Eidous
+               FROM ZWO z
+               ORDER BY z.Kodikos
+               LIMIT ? OFFSET ?
+           ");
+           
+           $stmt->bind_param("ii", $limit, $offset);
+           $stmt->execute();
+           $result = $stmt->get_result();
+           break;
 
        case 'Είδη':
            $totalRows = $db->query("SELECT COUNT(*) as count FROM EIDOS")->fetch_assoc()['count'];
@@ -129,6 +125,11 @@ try {
 
    if(isset($result)) {
        while($row = $result->fetch_assoc()) {
+           array_walk_recursive($row, function(&$item) {
+               if (is_string($item)) {
+                   $item = mb_convert_encoding($item, 'UTF-8', 'UTF-8');
+               }
+           });
            $response['data'][] = $row;
        }
    }
@@ -140,11 +141,9 @@ try {
        'itemsPerPage' => $limit
    ];
 
-   error_log("Response: " . json_encode($response, JSON_UNESCAPED_UNICODE));
-   echo json_encode($response, JSON_UNESCAPED_UNICODE);
+   echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_PARTIAL_OUTPUT_ON_ERROR);
 
 } catch (Exception $e) {
-    error_log($e->getMessage()); // Προσθήκη logging
    http_response_code(500);
    echo json_encode([
        'status' => 'error',

@@ -1,3 +1,4 @@
+
 <?php
 class Database {
     private $host = "lessons.dcie.teiemt.gr";
@@ -7,19 +8,29 @@ class Database {
     private $conn;
 
     public function __construct() {
+        mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+        
         try {
-            $this->conn = new mysqli($this->host, $this->username, $this->password, $this->database);
+            $this->conn = new mysqli(
+                $this->host, 
+                $this->username, 
+                $this->password, 
+                $this->database
+            );
             
             if ($this->conn->connect_error) {
-                throw new Exception("Σφάλμα σύνδεσης: " . $this->conn->connect_error);
+                throw new Exception("Connection failed: " . $this->conn->connect_error);
             }
 
-            // Ορισμός character set σε UTF-8
+            // Set character set to UTF-8 for full Unicode support
             $this->conn->set_charset("utf8mb4");
             
         } catch (Exception $e) {
             error_log($e->getMessage());
-            die("Σφάλμα σύνδεσης με τη βάση δεδομένων. Παρακαλώ δοκιμάστε αργότερα.");
+            die(json_encode([
+                'status' => 'error',
+                'message' => 'Database connection error'
+            ]));
         }
     }
 
