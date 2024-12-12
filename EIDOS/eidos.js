@@ -1,5 +1,5 @@
 import { loadSection, showMessage, showLoading, hideLoading } from '../script.js';
-import { validators, validateForm, createFormField, setupFormValidation } from '../ValidationFunctions.js';
+import { setupFormValidation } from '../ValidationFunctions.js';
 
 const eidosFields = [
     { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },

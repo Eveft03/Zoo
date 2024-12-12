@@ -1,8 +1,8 @@
 <?php
 class Database {
-    private $host = "localhost";
-    private $username = "root";
-    private $password = "";
+    private $host = "lessons.dcie.teiemt.gr";
+    private $username = "student_2410";
+    private $password = "pass2410";
     private $database = "ZWOLOGIKOS_KHPOS";
     private $conn;
 

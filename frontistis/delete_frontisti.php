@@ -1,6 +1,10 @@
 <?php
-header('Content-Type: application/json; charset=utf-8');
 require_once '../db_connection.php';
+header('Content-Type: application/json; charset=utf-8');
+ini_set('display_errors', 0);
+error_reporting(0);
+mb_internal_encoding('UTF-8');
+
 
 try {
     $db = getDatabase();

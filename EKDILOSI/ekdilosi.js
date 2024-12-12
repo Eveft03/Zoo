@@ -1,7 +1,7 @@
 // ekdilosi/ekdilosi-operations.js
 
 import { loadSection, showMessage, showLoading, hideLoading } from '../script.js';
-import { validators, validateForm, createFormField, setupFormValidation } from '../ValidationFunctions.js';
+import { setupFormValidation } from '../ValidationFunctions.js';
 
 const ekdilosiFields = [
     { name: 'titlos', label: 'Τίτλος', required: true, type: 'text' },

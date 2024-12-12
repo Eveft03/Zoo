@@ -1,5 +1,5 @@
 import { loadSection, showMessage, showLoading, hideLoading } from '../script.js';
-import { validators, validateForm, createFormField, setupFormValidation } from '../ValidationFunctions.js';
+import { setupFormValidation } from '../ValidationFunctions.js';
 
 const promitheutisFields = [
     { name: 'afm', label: 'ΑΦΜ', required: true, pattern: '^\\d{9}$', type: 'text' },
