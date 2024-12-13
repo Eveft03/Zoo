@@ -4,7 +4,7 @@ import { setupFormValidation } from '../ValidationFunctions.js';
 
 
 const zwoFields = [
-    { name: 'kodikos', label: 'Κωδικός', required: true, pattern: '^Z\\d{6}$', type: 'text' },
+    { name: 'kodikos', label: 'Κωδικός', required: true, pattern: '^[Zz]\\d{6}$', type: 'text' },
     { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
     { name: 'etos_genesis', label: 'Έτος Γέννησης', required: true, type: 'number', min: 1900, max: new Date().getFullYear() },
     { name: 'onoma_eidous', label: 'Είδος', required: true, type: 'select', dataSource: 'get_species.php' }
