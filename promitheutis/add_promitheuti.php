@@ -8,6 +8,10 @@ mb_internal_encoding('UTF-8');
 try {
     $db = getDatabase();
     
+    if (!$db) {
+        throw new Exception("Πρόβλημα σύνδεσης με τη βάση δεδομένων");
+    }
+
     $required_fields = ['afm', 'onoma', 'thlefono'];
     foreach ($required_fields as $field) {
         if (!isset($_POST[$field]) || empty(trim($_POST[$field]))) {
@@ -23,8 +27,9 @@ try {
         throw new Exception("Το τηλέφωνο πρέπει να αποτελείται από 10 ψηφία");
     }
 
-    $db->beginTransaction();
+    $db->begin_transaction();
 
+    // Έλεγχος αν υπάρχει ήδη το ΑΦΜ
     $stmt = $db->prepare("SELECT AFM FROM PROMITHEUTIS WHERE AFM = ?");
     $stmt->bind_param("s", $_POST['afm']);
     $stmt->execute();
@@ -32,35 +37,33 @@ try {
         throw new Exception("Το ΑΦΜ υπάρχει ήδη");
     }
 
+    $afm = $_POST['afm'];
+    $onoma = htmlspecialchars(trim($_POST['onoma']), ENT_QUOTES, 'UTF-8');
+    $thlefono = htmlspecialchars(trim($_POST['thlefono']), ENT_QUOTES, 'UTF-8');
+
     $stmt = $db->prepare("INSERT INTO PROMITHEUTIS (AFM, Onoma, Thlefono) VALUES (?, ?, ?)");
-    $stmt->bind_param("sss", 
-        $_POST['afm'],
-        $_POST['onoma'],
-        $_POST['thlefono']
-    );
+    $stmt->bind_param("sss", $afm, $onoma, $thlefono);
     
     if (!$stmt->execute()) {
-        throw new Exception("Σφάλμα κατά την εισαγωγή του προμηθευτή");
+        throw new Exception("Σφάλμα κατά την εισαγωγή του προμηθευτή: " . $stmt->error);
     }
 
     $db->commit();
 
-    $response = [
+    echo json_encode([
         'status' => 'success',
         'message' => 'Ο προμηθευτής προστέθηκε επιτυχώς'
-    ];
-    
-    echo json_encode($response, JSON_UNESCAPED_UNICODE);
+    ], JSON_UNESCAPED_UNICODE);
 
 } catch (Exception $e) {
     if (isset($db)) {
         $db->rollback();
     }
-    
-    http_response_code(400);
+    http_response_code(500);
     echo json_encode([
         'status' => 'error',
         'message' => $e->getMessage()
     ], JSON_UNESCAPED_UNICODE);
 }
+
 ?>
