@@ -11,26 +11,19 @@ import { createpromitheutisForm, handlepromitheutisDelete } from './promitheutis
 // script.js
 export async function loadData(section, page = 1) {
     try {
-        const url = new URL('db.php', window.location.href);
-        url.searchParams.append('section', section);
-        url.searchParams.append('page', page.toString());
-
-        const response = await fetch(url, {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json; charset=utf-8'
-            }
-        });
-
+        const encodedSection = encodeURIComponent(section);
+        const response = await fetch(`/db2/student_2410/ZWOLOGIKOS_KHPOS/db.php?section=${encodedSection}&page=${page}`);
+        
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorData = await response.json();
+            throw new Error(errorData.message);
         }
-
-        const data = await response.json();
-        return data;
+        
+        return await response.json();
     } catch (error) {
         console.error('Error:', error);
-        throw error;
+        showMessage(error.message, true);
+        return null;
     }
 }
 export function showForm(formType, section, data = null) {

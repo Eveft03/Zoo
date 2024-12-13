@@ -1,62 +1,60 @@
-
 <?php
 class Database {
-    private $host = "lessons.dcie.teiemt.gr";
+    private $host = "localhost";
     private $username = "student_2410";
     private $password = "pass2410";
-    private $database = "ZWOLOGIKOS_KHPOS";
+    private $database = "student_2410"; // Βεβαιώσου ότι υπάρχει η βάση με αυτό το ακριβές όνομα
     private $conn;
 
     public function __construct() {
-        mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-        
         try {
-            $this->conn = new mysqli(
-                $this->host, 
-                $this->username, 
-                $this->password, 
-                $this->database
-            );
+            $this->conn = mysqli_connect($this->host, $this->username, $this->password, $this->database);
             
-            if ($this->conn->connect_error) {
-                throw new Exception("Connection failed: " . $this->conn->connect_error);
+            if (!$this->conn) {
+                throw new Exception(mysqli_connect_error());
             }
 
-            // Set character set to UTF-8 for full Unicode support
             $this->conn->set_charset("utf8mb4");
             
         } catch (Exception $e) {
             error_log($e->getMessage());
-            die(json_encode([
-                'status' => 'error',
-                'message' => 'Database connection error'
-            ]));
+            // Μπορείς να αλλάξεις σε json_encode για να βλέπεις σε JSON μορφή το σφάλμα αν χρειαστεί
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode([
+                "status" => "error",
+                "message" => "Database connection error: " . $e->getMessage()
+            ]);
+            exit;
         }
     }
 
     public function getConnection() {
+        if (!$this->conn) {
+            throw new Exception("No database connection");
+        }
         return $this->conn;
     }
 
     public function prepare($sql) {
-        return $this->conn->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
+        if(!$stmt) {
+            throw new Exception("Prepare failed: " . $this->conn->error);
+        }
+        return $stmt;
     }
 
     public function query($sql) {
         $result = $this->conn->query($sql);
         if (!$result) {
-            error_log("Query error: " . $this->conn->error);
-            throw new Exception("Σφάλμα στο ερώτημα της βάσης δεδομένων");
+            throw new Exception("Query error: " . $this->conn->error);
         }
         return $result;
     }
 
-    public function escapeString($string) {
-        return $this->conn->real_escape_string($string);
-    }
-
     public function close() {
-        $this->conn->close();
+        if ($this->conn) {
+            $this->conn->close();
+        }
     }
 
     public function beginTransaction() {
@@ -72,12 +70,10 @@ class Database {
     }
 }
 
-// Singleton instance
 function getDatabase() {
     static $db = null;
     if ($db === null) {
         $db = new Database();
     }
-    return $db;
+    return $db->getConnection();
 }
-?>
