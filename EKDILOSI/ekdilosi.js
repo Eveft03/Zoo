@@ -3,12 +3,12 @@ import { loadSection, showMessage, showLoading, hideLoading } from '../script.js
 import { setupFormValidation } from '../ValidationFunctions.js';
 
 const ekdilosiFields = [
-   { name: 'titlos', label: 'Τίτλος', required: true, type: 'text' },
-   { name: 'hmerominia', label: 'Ημερομηνία', required: true, type: 'date',
-     min: new Date().toISOString().split('T')[0] },
-   { name: 'ora', label: 'Ώρα', required: true, type: 'time' },
-   { name: 'xwros', label: 'Χώρος', required: true, type: 'text' }
-];
+    { name: 'titlos', label: 'Τίτλος', required: true, type: 'text' },
+    { name: 'hmerominia', label: 'Ημερομηνία', required: true, type: 'date',
+      min: new Date().toISOString().split('T')[0] },
+    { name: 'ora', label: 'Ώρα', required: true, type: 'time', pattern: '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$' },
+    { name: 'xwros', label: 'Χώρος', required: true, type: 'text' }
+ ];
 
 function createEkdilosiForm(formType, data = null) {
    const form = document.createElement('form');

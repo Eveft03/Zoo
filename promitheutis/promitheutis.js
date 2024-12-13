@@ -4,7 +4,7 @@ import { setupFormValidation } from '../ValidationFunctions.js';
 const promitheutisFields = [
     { name: 'afm', label: 'ΑΦΜ', required: true, pattern: '^\\d{9}$', type: 'text' },
     { name: 'onoma', label: 'Όνομα', required: true, type: 'text' },
-    { name: 'thlefono', label: 'Τηλέφωνο', required: true, pattern: '^\\d{10}$', type: 'tel' }
+    { name: 'thlefono', label: 'Τηλέφωνο', required: true, pattern: '^^\\+?\\d{12}$', type: 'tel' },
 ];
 
 function createpromitheutisForm(formType, data = null) {

@@ -39,15 +39,17 @@ try {
             $stmt = $db->prepare("SELECT * FROM EIDOS LIMIT ? OFFSET ?");
             break;
 
-        case 'Εκδηλώσεις':
-            $totalRows = $db->query("SELECT COUNT(*) as count FROM EKDILOSI")->fetch_assoc()['count'];
-            $stmt = $db->prepare("
-                SELECT Titlos, Hmerominia, Ora, Xwros
-                FROM EKDILOSI 
-                ORDER BY Hmerominia DESC, Ora
-                LIMIT ? OFFSET ?
-            ");
-            break;
+         case 'Εκδηλώσεις':
+                $totalRows = $db->query("SELECT COUNT(*) as count FROM EKDILOSI")->fetch_assoc()['count'];
+                $stmt = $db->prepare("
+                    SELECT Titlos, Hmerominia, 
+                    TIME_FORMAT(Ora, '%H:%i') as Ora,
+                    Xwros
+                    FROM EKDILOSI 
+                    ORDER BY Hmerominia DESC, Ora
+                    LIMIT ? OFFSET ?
+                ");
+             break;
 
         case 'Εισιτήρια':
             $totalRows = $db->query("SELECT COUNT(*) as count FROM EISITIRIO")->fetch_assoc()['count'];

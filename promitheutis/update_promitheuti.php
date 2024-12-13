@@ -35,8 +35,8 @@ try {
     }
 
     if (isset($_POST['thlefono']) && !empty($_POST['thlefono'])) {
-        if (!preg_match('/^\d{10}$/', $_POST['thlefono'])) {
-            throw new Exception("Μη έγκυρος αριθμός τηλεφώνου");
+        if (!preg_match('/^\+?\d{12}$/', $_POST['thlefono'])) {
+            throw new Exception("Το τηλέφωνο πρέπει να έχει τη μορφή +30XXXXXXXXXX");
         }
         $updates[] = "Thlefono = ?";
         $types .= "s";

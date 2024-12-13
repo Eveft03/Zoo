@@ -23,10 +23,10 @@ try {
         throw new Exception("Το ΑΦΜ πρέπει να αποτελείται από 9 ψηφία");
     }
 
-    if (!preg_match('/^\d{10}$/', $_POST['thlefono'])) {
-        throw new Exception("Το τηλέφωνο πρέπει να αποτελείται από 10 ψηφία");
+    if (!preg_match('/^\+?\d{12}$/', $_POST['thlefono'])) {
+        throw new Exception("Το τηλέφωνο πρέπει να έχει τη μορφή +30XXXXXXXXXX");
     }
-
+    
     $db->begin_transaction();
 
     // Έλεγχος αν υπάρχει ήδη το ΑΦΜ
