@@ -14,45 +14,46 @@ try {
         throw new Exception("Δεν βρέθηκε ο κωδικός του ζώου");
     }
 
-    $db->beginTransaction();
-
-    // Έλεγχος εξαρτήσεων στο SYMMETEXEI
-    $stmt = $db->prepare("DELETE FROM SYMMETEXEI WHERE Kodikos = ?");
-    $stmt->bind_param("s", $data['Kodikos']);
-    $stmt->execute();
-
-    // Έλεγχος εξαρτήσεων στο FRONTIZEI
-    $stmt = $db->prepare("DELETE FROM FRONTIZEI WHERE Kodikos = ?");
-    $stmt->bind_param("s", $data['Kodikos']);
-    $stmt->execute();
-
-    // Διαγραφή ζώου
-    $stmt = $db->prepare("DELETE FROM ZWO WHERE Kodikos = ?");
-    $stmt->bind_param("s", $data['Kodikos']);
-    
-    if (!$stmt->execute()) {
-        throw new Exception("Σφάλμα κατά τη διαγραφή του ζώου");
+    // Έλεγχος αν υπάρχει το ζώο
+    $checkStmt = $db->prepare("SELECT 1 FROM ZWO WHERE Kodikos = ?");
+    $checkStmt->bind_param("s", $data['Kodikos']);
+    $checkStmt->execute();
+    if ($checkStmt->get_result()->num_rows === 0) {
+        throw new Exception("Το ζώο δεν βρέθηκε");
     }
 
-    if ($stmt->affected_rows === 0) {
-        throw new Exception("Δεν βρέθηκε το ζώο");
-    }
+    $db->begin_transaction();
 
-    $db->commit();
-    
-    echo json_encode([
-        'status' => 'success',
-        'message' => 'Το ζώο διαγράφηκε επιτυχώς'
-    ], JSON_UNESCAPED_UNICODE);
+    try {
+        // Διαγραφή από FRONTIZEI
+        $stmt = $db->prepare("DELETE FROM FRONTIZEI WHERE Kodikos = ?");
+        $stmt->bind_param("s", $data['Kodikos']);
+        $stmt->execute();
 
-} catch (Exception $e) {
-    if (isset($db)) {
+        // Διαγραφή από SYMMETEXEI
+        $stmt = $db->prepare("DELETE FROM SYMMETEXEI WHERE Kodikos = ?");
+        $stmt->bind_param("s", $data['Kodikos']);
+        $stmt->execute();
+
+        // Διαγραφή ζώου
+        $stmt = $db->prepare("DELETE FROM ZWO WHERE Kodikos = ?");
+        $stmt->bind_param("s", $data['Kodikos']);
+        $stmt->execute();
+
+        $db->commit();
+        
+        echo json_encode([
+            'status' => 'success',
+            'message' => 'Το ζώο διαγράφηκε επιτυχώς'
+        ]);
+    } catch (Exception $e) {
         $db->rollback();
+        throw $e;
     }
-    http_response_code(400);
+} catch (Exception $e) {
+    http_response_code(500);
     echo json_encode([
         'status' => 'error',
         'message' => $e->getMessage()
-    ], JSON_UNESCAPED_UNICODE);
+    ]);
 }
-?>

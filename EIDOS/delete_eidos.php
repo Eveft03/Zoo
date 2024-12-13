@@ -14,27 +14,20 @@ try {
         throw new Exception("Δεν βρέθηκε το όνομα του είδους");
     }
 
-    $db->beginTransaction();
+    $db->begin_transaction();
 
-    // Έλεγχος και λήψη λίστας ζώων του είδους
-    $stmt = $db->prepare("
-        SELECT Onoma
-        FROM ZWO 
-        WHERE Onoma_Eidous = ?
-    ");
+    // Έλεγχος για ζώα του είδους
+    $stmt = $db->prepare("SELECT COUNT(*) as count FROM ZWO WHERE Onoma_Eidous = ?");
     $stmt->bind_param("s", $data['Onoma']);
     $stmt->execute();
     $result = $stmt->get_result();
+    $count = $result->fetch_assoc()['count'];
     
-    if ($result->num_rows > 0) {
-        $zwa = array();
-        while ($row = $result->fetch_assoc()) {
-            $zwa[] = $row['Onoma'];
-        }
-        throw new Exception("Το είδος δεν μπορεί να διαγραφεί γιατί υπάρχουν ζώα αυτού του είδους: " . implode(", ", $zwa));
+    if ($count > 0) {
+        throw new Exception("Το είδος δεν μπορεί να διαγραφεί γιατί υπάρχουν " . $count . " ζώα αυτού του είδους");
     }
 
-    // Έλεγχος και διαγραφή από TREFETAI
+    // Διαγραφή από TREFETAI
     $stmt = $db->prepare("DELETE FROM TREFETAI WHERE Eidos_onoma = ?");
     $stmt->bind_param("s", $data['Onoma']);
     $stmt->execute();
@@ -48,7 +41,7 @@ try {
     }
 
     if ($stmt->affected_rows === 0) {
-        throw new Exception("Δεν βρέθηκε το είδος");
+        throw new Exception("Το είδος δεν βρέθηκε");
     }
 
     $db->commit();

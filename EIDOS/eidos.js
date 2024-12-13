@@ -39,7 +39,7 @@ function createeidosForm(formType, data = null) {
             textarea.name = field.name;
             textarea.id = field.name;
             textarea.required = field.required;
-            if (data) {
+            if (data && field.name === 'perigrafi') {
                 textarea.value = data.Perigrafi;
             }
             formGroup.appendChild(textarea);
@@ -68,11 +68,13 @@ function createeidosForm(formType, data = null) {
             input.required = field.required;
 
             if (data) {
-                if (field.name === 'onoma') {
-                    input.value = data.Onoma;
-                    if (formType === 'Επεξεργασία') {
-                        input.readOnly = true;
-                    }
+                switch(field.name) {
+                    case 'onoma':
+                        input.value = data.Onoma;
+                        if (formType === 'Επεξεργασία') {
+                            input.readOnly = true;
+                        }
+                        break;
                 }
             }
 
@@ -98,7 +100,7 @@ function createeidosForm(formType, data = null) {
     buttonsDiv.appendChild(cancelButton);
 
     form.appendChild(buttonsDiv);
-    setupFormValidation(form); 
+    setupFormValidation(form);
     return form;
 }
 
@@ -108,16 +110,14 @@ async function handleeidosSubmit(event, formType) {
 
     try {
         const formData = new FormData(event.target);
-        const url = `./eidos/${formType === 'Προσθήκη' ? 'add' : 'update'}_eidos.php`;
+        const url = `/db2/student_2410/ZWOLOGIKOS_KHPOS/eidos/${formType === 'Προσθήκη' ? 'add' : 'update'}_eidos.php`;
 
         const response = await fetch(url, {
             method: 'POST',
             body: formData
         });
 
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
+        if (!response.ok) throw new Error('Network response was not ok');
 
         const result = await response.json();
         if (result.status === 'error') throw new Error(result.message);
@@ -130,6 +130,7 @@ async function handleeidosSubmit(event, formType) {
         hideLoading();
     }
 }
+
 async function handleeidosDelete(data) {
     if (!confirm('Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το είδος;')) {
         return;
@@ -137,7 +138,7 @@ async function handleeidosDelete(data) {
 
     try {
         showLoading();
-        const response = await fetch('./eidos/delete_eidos.php', {
+        const response = await fetch('/db2/student_2410/ZWOLOGIKOS_KHPOS/eidos/delete_eidos.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -146,9 +147,7 @@ async function handleeidosDelete(data) {
         });
 
         const result = await response.json();
-        if (result.status === 'error') {
-            throw new Error(result.message);
-        }
+        if (result.status === 'error') throw new Error(result.message);
 
         showMessage(result.message, false);
         await loadSection('Είδη');

@@ -43,7 +43,7 @@ function createZwoForm(formType, data = null) {
             select.name = field.name;
             select.id = field.name;
             select.required = field.required;
-            
+
             // Populate select with options from dataSource
             fetch(field.dataSource)
                 .then(response => response.json())
@@ -73,7 +73,7 @@ function createZwoForm(formType, data = null) {
 
             // Set values when editing
             if (data) {
-                switch(field.name) {
+                switch (field.name) {
                     case 'kodikos':
                         input.value = data.Kodikos;
                         if (formType === 'Επεξεργασία') {
@@ -93,7 +93,7 @@ function createZwoForm(formType, data = null) {
         }
 
         form.appendChild(formGroup);
-        
+
     });
 
     const buttonsDiv = document.createElement('div');
@@ -112,7 +112,7 @@ function createZwoForm(formType, data = null) {
     buttonsDiv.appendChild(cancelButton);
 
     form.appendChild(buttonsDiv);
-    setupFormValidation(form); 
+    setupFormValidation(form);
     return form;
 }
 
@@ -122,7 +122,8 @@ async function handleZwoSubmit(event, formType) {
 
     try {
         const formData = new FormData(event.target);
-        const url = `./zwo/${formType === 'Προσθήκη' ? 'add' : 'update'}_zwo.php`;
+        // Στην handleZwoSubmit 
+        const url = `/db2/student_2410/ZWOLOGIKOS_KHPOS/zwo/${formType === 'Προσθήκη' ? 'add' : 'update'}_zwo.php`;
 
         const response = await fetch(url, {
             method: 'POST',
@@ -153,13 +154,17 @@ async function handleZwoDelete(data) {
 
     try {
         showLoading();
-        const response = await fetch('./zwo/delete_zwo.php', {
+        const response = await fetch('/db2/student_2410/ZWOLOGIKOS_KHPOS/zwo/delete_zwo.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(data)
         });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
         const result = await response.json();
         if (result.status === 'error') {
