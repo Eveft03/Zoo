@@ -8,15 +8,21 @@ mb_internal_encoding('UTF-8');
 try {
     $db = getDatabase();
     
+    if (!$db) {
+        throw new Exception("Πρόβλημα σύνδεσης με τη βάση δεδομένων");
+    }
+
     if (!isset($_POST['kodikos']) || !isset($_POST['hmerominia_ekdoshs'])) {
         throw new Exception("Απαιτούνται τα στοιχεία του εισιτηρίου");
     }
-    $checkStmt = $db->prepare("SELECT 1 FROM EISITIRIO WHERE Kodikos = ? AND Hmerominia_Ekdoshs = ?"); 
+
+    // Έλεγχος αν υπάρχει το εισιτήριο
+    $checkStmt = $db->prepare("SELECT 1 FROM EISITIRIO WHERE Kodikos = ? AND Hmerominia_Ekdoshs = ?");
     $checkStmt->bind_param("is", $_POST['kodikos'], $_POST['hmerominia_ekdoshs']);
     $checkStmt->execute();
     if ($checkStmt->get_result()->num_rows === 0) {
-   throw new Exception("Το εισιτήριο δεν βρέθηκε");
-}
+        throw new Exception("Το εισιτήριο δεν βρέθηκε");
+    }
 
     $updates = [];
     $types = "";
@@ -73,26 +79,31 @@ try {
         throw new Exception("Δεν παρέχονται δεδομένα για ενημέρωση");
     }
 
-    $db->beginTransaction();
+    $db->begin_transaction();
 
-    $sql = "UPDATE EISITIRIO SET " . implode(", ", $updates) . 
-           " WHERE Kodikos = ? AND Hmerominia_Ekdoshs = ?";
-    $types .= "is";
-    $values[] = $_POST['kodikos'];
-    $values[] = $_POST['hmerominia_ekdoshs'];
+    try {
+        $sql = "UPDATE EISITIRIO SET " . implode(", ", $updates) . 
+               " WHERE Kodikos = ? AND Hmerominia_Ekdoshs = ?";
+        $types .= "is";
+        $values[] = $_POST['kodikos'];
+        $values[] = $_POST['hmerominia_ekdoshs'];
 
-    $stmt = $db->prepare($sql);
-    $stmt->bind_param($types, ...$values);
-    
-    if (!$stmt->execute()) {
-        throw new Exception("Σφάλμα κατά την ενημέρωση του εισιτηρίου");
+        $stmt = $db->prepare($sql);
+        $stmt->bind_param($types, ...$values);
+
+        if (!$stmt->execute()) {
+            throw new Exception("Σφάλμα κατά την ενημέρωση του εισιτηρίου: " . $stmt->error);
+        }
+
+        $db->commit();
+        echo json_encode(['status' => 'success', 'message' => 'Το εισιτήριο ενημερώθηκε επιτυχώς'], JSON_UNESCAPED_UNICODE);
+
+    } catch (Exception $e) {
+        $db->rollback();
+        throw $e;
     }
 
-    $db->commit();
-    echo json_encode(['status' => 'success', 'message' => 'Το εισιτήριο ενημερώθηκε επιτυχώς']);
-
 } catch (Exception $e) {
-    if (isset($db)) $db->rollback();
-    http_response_code(400);
-    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+    http_response_code(500);
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
 }

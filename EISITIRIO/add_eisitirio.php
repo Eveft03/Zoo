@@ -8,7 +8,12 @@ mb_internal_encoding('UTF-8');
 try {
     $db = getDatabase();
     
-    // Validate required fields
+    // Έλεγχος σύνδεσης με τη βάση
+    if (!$db) {
+        throw new Exception("Πρόβλημα σύνδεσης με τη βάση δεδομένων");
+    }
+
+    // Έλεγχος απαιτούμενων πεδίων
     $required_fields = ['kodikos', 'hmerominia_ekdoshs', 'timi', 'idTamia', 'email', 'katigoria'];
     foreach ($required_fields as $field) {
         if (!isset($_POST[$field]) || empty($_POST[$field])) {
@@ -16,23 +21,23 @@ try {
         }
     }
 
-    // Validate ticket code
+    // Έλεγχος εγκυρότητας κωδικού εισιτηρίου
     if (!is_numeric($_POST['kodikos']) || $_POST['kodikos'] <= 0) {
         throw new Exception("Ο κωδικός πρέπει να είναι θετικός ακέραιος αριθμός");
     }
 
-    // Validate date (no Sundays)
+    // Έλεγχος ημερομηνίας (όχι Κυριακή)
     $date = new DateTime($_POST['hmerominia_ekdoshs']);
-    if ($date->format('w') == 0) { // 0 = Sunday
+    if ($date->format('w') == 0) { // 0 = Κυριακή
         throw new Exception("Δεν επιτρέπεται η έκδοση εισιτηρίων την Κυριακή");
     }
 
-    // Validate price
+    // Έλεγχος τιμής
     if (!is_numeric($_POST['timi']) || $_POST['timi'] <= 0) {
         throw new Exception("Μη έγκυρη τιμή");
     }
 
-    // Check if visitor email exists
+    // Έλεγχος ύπαρξης επισκέπτη
     $stmt = $db->prepare("SELECT Email FROM EPISKEPTIS WHERE Email = ?");
     $stmt->bind_param("s", $_POST['email']);
     $stmt->execute();
@@ -40,9 +45,10 @@ try {
         throw new Exception("Ο επισκέπτης με αυτό το email δεν υπάρχει");
     }
 
-    $db->beginTransaction();
+    // Έναρξη συναλλαγής
+    $db->begin_transaction();
 
-    // Check for duplicate ticket
+    // Έλεγχος για διπλότυπο εισιτήριο
     $stmt = $db->prepare("SELECT Kodikos FROM EISITIRIO WHERE Kodikos = ? AND Hmerominia_Ekdoshs = ?");
     $stmt->bind_param("is", $_POST['kodikos'], $_POST['hmerominia_ekdoshs']);
     $stmt->execute();
@@ -50,7 +56,7 @@ try {
         throw new Exception("Υπάρχει ήδη εισιτήριο με αυτόν τον κωδικό για την ίδια ημερομηνία");
     }
 
-    // Check if cashier exists
+    // Έλεγχος αν υπάρχει ο ταμίας
     if ($_POST['idTamia'] !== 'null') {
         $stmt = $db->prepare("SELECT ID FROM TAMIAS WHERE ID = ?");
         $stmt->bind_param("i", $_POST['idTamia']);
@@ -60,7 +66,7 @@ try {
         }
     }
 
-    // Check for events if ticket type is "Με εκδήλωση"
+    // Έλεγχος για εκδηλώσεις αν η κατηγορία είναι "Με εκδήλωση"
     if ($_POST['katigoria'] === 'Με εκδήλωση') {
         $stmt = $db->prepare("SELECT COUNT(*) as count FROM EKDILOSI WHERE Hmerominia = ?");
         $stmt->bind_param("s", $_POST['hmerominia_ekdoshs']);
@@ -70,7 +76,7 @@ try {
         }
     }
 
-    // Insert ticket
+    // Εισαγωγή εισιτηρίου
     $stmt = $db->prepare("
         INSERT INTO EISITIRIO (Kodikos, Hmerominia_Ekdoshs, Timi, IDTamia, Email, Katigoria)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -101,7 +107,7 @@ try {
     if (isset($db)) {
         $db->rollback();
     }
-    http_response_code(400);
+    http_response_code(500);
     echo json_encode([
         'status' => 'error',
         'message' => $e->getMessage()

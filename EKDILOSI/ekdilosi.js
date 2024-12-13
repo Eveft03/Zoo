@@ -1,11 +1,10 @@
 // ekdilosi.js
-
 import { loadSection, showMessage, showLoading, hideLoading } from '../script.js';
 import { setupFormValidation } from '../ValidationFunctions.js';
 
 const ekdilosiFields = [
    { name: 'titlos', label: 'Τίτλος', required: true, type: 'text' },
-   { name: 'hmerominia', label: 'Ημερομηνία', required: true, type: 'date', 
+   { name: 'hmerominia', label: 'Ημερομηνία', required: true, type: 'date',
      min: new Date().toISOString().split('T')[0] },
    { name: 'ora', label: 'Ώρα', required: true, type: 'time' },
    { name: 'xwros', label: 'Χώρος', required: true, type: 'text' }
@@ -14,24 +13,24 @@ const ekdilosiFields = [
 function createEkdilosiForm(formType, data = null) {
    const form = document.createElement('form');
    form.className = 'entity-form';
-   form.onsubmit = (e) => handleEkdilosiSubmit(e, formType);
+   form.addEventListener('submit', async (e) => handleEkdilosiSubmit(e, formType));
 
    const title = document.createElement('h2');
    title.textContent = `${formType} Εκδήλωσης`;
    form.appendChild(title);
 
-   if (formType === 'Επεξεργασία') {
-       const oldTitlos = document.createElement('input');
-       oldTitlos.type = 'hidden';
-       oldTitlos.name = 'old_titlos';
-       oldTitlos.value = data.Titlos;
-       form.appendChild(oldTitlos);
+   if (formType === 'Επεξεργασία' && data) {
+       const originalTitlos = document.createElement('input');
+       originalTitlos.type = 'hidden';
+       originalTitlos.name = 'old_titlos';
+       originalTitlos.value = data.Titlos;
+       form.appendChild(originalTitlos);
 
-       const oldHmerominia = document.createElement('input');
-       oldHmerominia.type = 'hidden';
-       oldHmerominia.name = 'old_hmerominia';
-       oldHmerominia.value = data.Hmerominia;
-       form.appendChild(oldHmerominia);
+       const originalHmerominia = document.createElement('input');
+       originalHmerominia.type = 'hidden';
+       originalHmerominia.name = 'old_hmerominia';
+       originalHmerominia.value = data.Hmerominia;
+       form.appendChild(originalHmerominia);
    }
 
    ekdilosiFields.forEach(field => {
@@ -51,10 +50,11 @@ function createEkdilosiForm(formType, data = null) {
        input.required = field.required;
        if (field.min) input.min = field.min;
 
-       if (formType === 'Επεξεργασία') {
+       if (data) {
            switch(field.name) {
                case 'titlos':
                    input.value = data.Titlos;
+                   if (formType === 'Επεξεργασία') input.readOnly = true;
                    break;
                case 'hmerominia':
                    input.value = data.Hmerominia;
@@ -88,7 +88,7 @@ function createEkdilosiForm(formType, data = null) {
    buttonsDiv.appendChild(cancelButton);
 
    form.appendChild(buttonsDiv);
-   setupFormValidation(form); 
+   setupFormValidation(form);
    return form;
 }
 
@@ -97,10 +97,13 @@ async function handleEkdilosiSubmit(event, formType) {
    showLoading();
 
    try {
+       // Επιπλέον έλεγχος εγκυρότητας formType
+       if (formType !== 'Προσθήκη' && formType !== 'Επεξεργασία') {
+           throw new Error('Μη έγκυρος τύπος φόρμας');
+       }
+
        const formData = new FormData(event.target);
-       const url = formType === 'Προσθήκη' ? 
-           '/db2/student_2410/ZWOLOGIKOS_KHPOS/ekdilosi/add_ekdilosi.php' : 
-           '/db2/student_2410/ZWOLOGIKOS_KHPOS/ekdilosi/update_ekdilosi.php';
+       const url = `/db2/student_2410/ZWOLOGIKOS_KHPOS/ekdilosi/${formType === 'Προσθήκη' ? 'add' : 'update'}_ekdilosi.php`;
 
        const response = await fetch(url, {
            method: 'POST',
@@ -131,15 +134,17 @@ async function handleEkdilosiDelete(data) {
 
    try {
        showLoading();
-
        const response = await fetch('/db2/student_2410/ZWOLOGIKOS_KHPOS/ekdilosi/delete_ekdilosi.php', {
            method: 'POST',
            headers: {
-               'Content-Type': 'application/json',
-               'X-Requested-With': 'XMLHttpRequest'
+               'Content-Type': 'application/json'
            },
            body: JSON.stringify(data)
        });
+
+       if (!response.ok) {
+           throw new Error(`HTTP error! status: ${response.status}`);
+       }
 
        const result = await response.json();
        if (result.status === 'error') throw new Error(result.message);

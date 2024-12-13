@@ -13,7 +13,10 @@ const eisitirioFields = [
 function createEisitirioForm(formType, data = null) {
     const form = document.createElement('form');
     form.className = 'entity-form';
-    form.onsubmit = (e) => handleEisitirioSubmit(e, formType);
+    // Αντί για onsubmit, χρησιμοποίησε addEventListener με async handler
+    form.addEventListener('submit', async (e) => {
+        await handleEisitirioSubmit(e, formType);
+    });
 
     const title = document.createElement('h2');
     title.textContent = `${formType} Εισιτηρίου`;
@@ -122,6 +125,10 @@ async function handleEisitirioSubmit(event, formType) {
     showLoading();
 
     try {
+        if (formType !== 'Προσθήκη' && formType !== 'Επεξεργασία') {
+            throw new Error('Μη έγκυρος τύπος φόρμας');
+        }
+
         const formData = new FormData(event.target);
         const url = `./eisitirio/${formType === 'Προσθήκη' ? 'add' : 'update'}_eisitirio.php`;
 
@@ -130,8 +137,11 @@ async function handleEisitirioSubmit(event, formType) {
             body: formData
         });
 
-        if (!response.ok) throw new Error('Network response was not ok');
-        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Σφάλμα απόκρισης: ${errorText}`);
+        }
+
         const result = await response.json();
         if (result.status === 'error') throw new Error(result.message);
 
@@ -158,6 +168,11 @@ async function handleEisitirioDelete(data) {
             },
             body: JSON.stringify(data)
         });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Σφάλμα απόκρισης: ${errorText}`);
+        }
 
         const result = await response.json();
         if (result.status === 'error') throw new Error(result.message);
